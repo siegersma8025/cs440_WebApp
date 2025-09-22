@@ -1,3 +1,5 @@
+# Used to create a mySQL database, already ran so do not need to run/use this file again
+
 import mysql.connector
 
 # Database information needed for connection
