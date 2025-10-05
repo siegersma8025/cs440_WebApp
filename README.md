@@ -18,7 +18,6 @@ To develop and run this project, it is recommended to use a Python virtual envir
 3. **Activate the virtual environment:**  
      ```
    - In terminal run:
-     ```
      .venv\Scripts\Activate.ps1
      ```
 
