@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Find Available Appointments</h2>
+<form method="POST" class="row g-3 mb-4">
+    {% csrf_token %}
+    <div class="col-md-4">
+        {{ form.category.label_tag }} {{ form.category }}
+    </div>
+    <div class="col-md-4">
+        {{ form.provider.label_tag }} {{ form.provider }}
+    </div>
+    <div class="col-md-4">
+        {{ form.date.label_tag }} {{ form.date }}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+<h3>Available Appointments</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Provider</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for slot in slots %}
+        <tr>
+            <td>{{ slot.provider.providerName }}</td>
+            <td>{{ slot.provider.get_category_display }}</td>
+            <td>{{ slot.date }}</td>
+            <td>{{ slot.start_time }}</td>
+            <td>{{ slot.end_time }}</td>
+            <td>
+                <!-- Add booking button here -->
+                <form method="POST" action="{% url 'bookAppointment' slot.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Book</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No available appointments found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
