@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Your Appointment Slots</h2>
+<ul>
+    {% for slot in slots %}
+        <li>
+            {{ slot.date }} {{ slot.start_time }} - {{ slot.end_time }}
+            {% if slot.is_booked %}
+                <strong>Booked</strong>
+            {% else %}
+                <strong>Available</strong>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>You have not added any slots yet.</li>
+    {% endfor %}
+</ul>
+
+<hr>
+<h3>Add Appointment Slot</h3>
+<form method="POST" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-4">
+        {{ slot_form.date.label_tag }} {{ slot_form.date }}
+    </div>
+    <div class="col-md-4">
+        {{ slot_form.start_time.label_tag }} {{ slot_form.start_time }}
+    </div>
+    <div class="col-md-4">
+        {{ slot_form.end_time.label_tag }} {{ slot_form.end_time }}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Add Slot</button>
+    </div>
+</form>
+{% endblock %}

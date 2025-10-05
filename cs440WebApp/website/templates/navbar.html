@@ -1,4 +1,4 @@
- <!-- Bootstrap Navigation Bar -->
+<!-- Bootstrap Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="{% url 'home' %}">Calender</a>
@@ -7,13 +7,20 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <!-- If user is authenticated allow the user to logout -->
         {% if user.is_authenticated %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'logout' %}">Logout</a>
         </li>
-         <!-- Else allow the user to login -->
         {% else %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="registerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Register
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="registerDropdown">
+            <li><a class="dropdown-item" href="{% url 'registerUser' %}">User</a></li>
+            <li><a class="dropdown-item" href="{% url 'registerProvider' %}">Service Provider</a></li>
+          </ul>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'home' %}">Login</a>
         </li>
