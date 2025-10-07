@@ -34,7 +34,7 @@ class UserSignUpForm(forms.Form):
 # Form that will handle Service Provider Registration, on save() it will create a new User and ServiceProvider object
 class ProviderSignUpForm(forms.Form):
     providerCategories = [('', '▼ Select A Provider Type'), ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness')]
-    providerName = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Provider Name'}))
+    qualifications = forms.CharField(label="", max_length=255, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Qualifications'}))
     first_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}))
     last_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}))   
     category = forms.ChoiceField(choices=providerCategories, label="", widget=forms.Select(attrs={'class': 'form-control', 'id': 'categoryDropdown', 'placeholder': 'Category'}))
@@ -63,7 +63,7 @@ class ProviderSignUpForm(forms.Form):
         )
         provider = ServiceProvider.objects.create(
             user=user,
-            providerName=self.cleaned_data['providerName'],
+            qualifications=self.cleaned_data['qualifications'],
             category=self.cleaned_data['category'],
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name']
@@ -72,33 +72,24 @@ class ProviderSignUpForm(forms.Form):
 
 # Form for service providers to create appointment slots
 class AppointmentSlotForm(forms.Form):
+    appointmentName = forms.CharField(label="", max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Appointment Name'}))
     date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
     end_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
 
 # Form for users to search for appointment slots
 class AppointmentSearchForm(forms.Form):
-    category = forms.ChoiceField(
-        choices=[('', 'Select Category')] + ServiceProvider.categortyChoices,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    provider = forms.ModelChoiceField(
-        queryset=ServiceProvider.objects.none(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    date = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
+    appointmentName = forms.CharField(label="", max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Appointment Name'}))
+    category = forms.ChoiceField(choices=[('', 'Select Category')] + ServiceProvider.categoryChoices,required=False,widget=forms.Select(attrs={'class': 'form-select'}))
+    provider = forms.ModelChoiceField(queryset=ServiceProvider.objects.none(),required=False,widget=forms.Select(attrs={'class': 'form-select'}))
+    date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
 
     # Will dynamically set provider queryset based on selected category 
     # (Allows for filtering of appointments by provider)
     def __init__(self, *args, **kwargs):
         category_selected = kwargs.pop('category_selected', None)
         super().__init__(*args, **kwargs)
-        if category_selected:
-            self.fields['provider'].queryset = ServiceProvider.objects.filter(category=category_selected)
-        else:
-            self.fields['provider'].queryset = ServiceProvider.objects.all()
+        # if category_selected:
+        #     self.fields['username'].queryset = ServiceProvider.objects.filter(category=category_selected)
+        # else:
+        #     self.fields['username'].queryset = ServiceProvider.objects.all()

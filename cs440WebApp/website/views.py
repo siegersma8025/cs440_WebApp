@@ -56,17 +56,11 @@ def registerProvider(request):
     if request.method == "POST":
         form = ProviderSignUpForm(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1']
-            )
-            ServiceProvider.objects.create(
-                user=user,
-                providerName=form.cleaned_data['providerName'],
-                category=form.cleaned_data['category'],
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name']
-            )
+            user = form.save()
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password1']
+            user = authenticate(username=username, password=password)
+            login(request, user)
             messages.success(request, "Registration Successful!")
             return redirect('home')
     else:
@@ -74,55 +68,19 @@ def registerProvider(request):
     return render(request, 'registerProvider.html', {'form': form})
 
 
-@login_required
-def userDashboard(request):
-    slots = AppointmentSlot.objects.filter(is_booked=False)
-    bookings = Booking.objects.filter(user=request.user)  # Add this line
-
-    category_selected = None
-    provider_selected = None
-    date_selected = None
-
-    if request.method == "POST":
-        form = AppointmentSearchForm(request.POST)
-        if form.is_valid():
-            category_selected = form.cleaned_data['category']
-            provider_selected = form.cleaned_data['provider']
-            date_selected = form.cleaned_data['date']
-
-            if category_selected:
-                slots = slots.filter(provider__category=category_selected)
-            if provider_selected:
-                slots = slots.filter(provider=provider_selected)
-            if date_selected:
-                slots = slots.filter(date=date_selected)
-    else:
-        form = AppointmentSearchForm()
-
-    # Re-initialize form with filtered provider queryset if category is selected
-    form = AppointmentSearchForm(request.POST or None, category_selected=category_selected)
-
-    return render(request, 'userDashboard.html', {
-        'form': form,
-        'slots': slots,
-        'bookings': bookings,  # Pass bookings to template
-    })
 
 @login_required
 def providerDashboard(request):
     provider = ServiceProvider.objects.filter(user=request.user).first()
-    if provider:
-        slots = AppointmentSlot.objects.filter(provider=provider)
-    else:
-        slots = []
-
+    slots = AppointmentSlot.objects.filter(providerUsername=request.user.username) if provider else []
     slot_form = AppointmentSlotForm()
 
     if request.method == "POST":
         slot_form = AppointmentSlotForm(request.POST)
         if slot_form.is_valid() and provider:
             AppointmentSlot.objects.create(
-                provider=provider,
+                appointmentName=slot_form.cleaned_data['appointmentName'],
+                providerUsername=request.user.username,  # Save provider's username
                 date=slot_form.cleaned_data['date'],
                 start_time=slot_form.cleaned_data['start_time'],
                 end_time=slot_form.cleaned_data['end_time']
@@ -132,8 +90,39 @@ def providerDashboard(request):
 
     return render(request, 'providerDashboard.html', {
         'slots': slots,
-        'provider': provider,
-        'slot_form': slot_form
+        'slot_form': slot_form,
+        'provider': provider
+    })
+
+@login_required
+def userDashboard(request):
+    slots = AppointmentSlot.objects.filter(is_booked=False)
+    bookings = Booking.objects.filter(user=request.user)
+
+    category_selected = None
+    date_selected = None
+
+    if request.method == "POST":
+        form = AppointmentSearchForm(request.POST)
+        if form.is_valid():
+            category_selected = form.cleaned_data['category']
+            date_selected = form.cleaned_data['date']
+
+            if category_selected:
+                # Get usernames of providers in this category
+                provider_usernames = ServiceProvider.objects.filter(category=category_selected).values_list('user__username', flat=True)
+                slots = slots.filter(provider_username__in=provider_usernames)
+            if date_selected:
+                slots = slots.filter(date=date_selected)
+    else:
+        form = AppointmentSearchForm()
+
+    form = AppointmentSearchForm(request.POST or None, category_selected=category_selected)
+
+    return render(request, 'userDashboard.html', {
+        'form': form,
+        'slots': slots,
+        'bookings': bookings,
     })
     
 @login_required

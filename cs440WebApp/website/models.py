@@ -3,16 +3,16 @@ from django.contrib.auth.models import User
 
 # Service provider object/model that will be used to push to database
 class ServiceProvider(models.Model):
-    categortyChoices = [ ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness'),]
+    categoryChoices = [ ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness'),]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    providerName = models.CharField(max_length=50)
-    category = models.CharField(max_length=20, choices=categortyChoices)
+    category = models.CharField(max_length=20, choices=categoryChoices)
+    qualifications = models.TextField(max_length=200, default="Qualifications")
     first_name = models.CharField(max_length=50, default="Provider")
     last_name = models.CharField(max_length=50, default="Name")
 
     # String representation of a "ServiceProvider" object
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.providerName}, {self.get_category_display()})"
+        return f"{self.first_name} {self.last_name} ({self.get_category_display()})"
     
 # User object/model that will be used to push to database
 class UserProfile(models.Model):
@@ -34,7 +34,8 @@ class AdminProfile(models.Model):
     
 # AppointmentSlot: available slots created by service providers
 class AppointmentSlot(models.Model):
-    provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='slots')
+    appointmentName = models.CharField(max_length=100, default="Appointment")
+    providerUsername = models.CharField(max_length=150, default="provider")
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -42,7 +43,7 @@ class AppointmentSlot(models.Model):
 
     # String representation of an "AppointmentSlot" object
     def __str__(self):
-        return f"{self.provider.providerName}: {self.date} {self.start_time}-{self.end_time}"
+        return f"{self.appointmentName}: {self.date} {self.start_time}-{self.end_time}"
 
 # Booking: booked slots by users
 class Booking(models.Model):

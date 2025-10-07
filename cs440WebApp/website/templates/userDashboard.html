@@ -1,79 +1,47 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <h2>User Dashboard</h2>
-    
-    <h4>Your Booked Appointments</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Provider Name</th>
-                <th>Provider Person</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for booking in bookings %}
-            <tr>
-                <td>{{ booking.slot.provider.providerName }}</td>
-                <td>{{ booking.slot.provider.first_name }} {{ booking.slot.provider.last_name }}</td>
-                <td>{{ booking.slot.provider.get_category_display }}</td>
-                <td>{{ booking.slot.date }}</td>
-                <td>{{ booking.slot.start_time }}</td>
-                <td>{{ booking.slot.end_time }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">You have no booked appointments.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h4>Search for Appointment Slots</h4>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Search</button>
-    </form>
-    <h4>Available Appointment Slots</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Provider Name</th>
-                <th>Provider Person</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Book</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for slot in slots %}
-            <tr>
-                <td>{{ slot.provider.providerName }}</td>
-                <td>{{ slot.provider.first_name }} {{ slot.provider.last_name }}</td>
-                <td>{{ slot.provider.get_category_display }}</td>
-                <td>{{ slot.date }}</td>
-                <td>{{ slot.start_time }}</td>
-                <td>{{ slot.end_time }}</td>
-                <td>
-                    <form method="post" action="{% url 'bookAppointment' slot.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success btn-sm">Book</button>
-                    </form>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7">No slots available.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<h2>Available Appointments</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Appointment Name</th>
+            <th>Provider Username</th>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for slot in slots %}
+        <tr>
+            <td>{{ slot.appointmentName }}</td>
+            <td>{{ slot.provider_username }}</td>
+            <td>{{ slot.date }}</td>
+            <td>{{ slot.start_time }}</td>
+            <td>{{ slot.end_time }}</td>
+            <td>
+                {% if slot.is_booked %}
+                    Booked
+                {% else %}
+                    Available
+                {% endif %}
+            </td>
+            <td>
+                {% if not slot.is_booked %}
+                <form method="POST" action="{% url 'bookAppointment' slot.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Book</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No available appointments found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

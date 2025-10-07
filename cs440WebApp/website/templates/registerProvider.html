@@ -5,9 +5,6 @@
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-            {{ form.providerName.label_tag }}{{ form.providerName }}
-        </div>
-        <div class="mb-3">
             {{ form.first_name.label_tag }}{{ form.first_name }}
         </div>
         <div class="mb-3">
@@ -15,6 +12,9 @@
         </div>
         <div class="mb-3">
             {{ form.category.label_tag }}{{ form.category }}
+        </div>
+        <div class="mb-3">
+            {{ form.qualifications.label_tag }}{{ form.qualifications }}
         </div>
         <div class="mb-3">
             {{ form.username.label_tag }}{{ form.username }}
