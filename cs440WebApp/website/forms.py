@@ -31,14 +31,14 @@ class UserSignUpForm(forms.Form):
 class ProviderSignUpForm(forms.Form):
     providerCategories = [('', '▼ Select A Provider Type'), ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness')]
     providerName = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Provider Name'}))
-    category = forms.ChoiceField(
-        choices=providerCategories,
-        label="",
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'categoryDropdown', 'placeholder': 'Category'})
-    )
+    first_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}))
+    last_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}))   
+    category = forms.ChoiceField(choices=providerCategories, label="", widget=forms.Select(attrs={'class': 'form-control', 'id': 'categoryDropdown', 'placeholder': 'Category'}))
     username = forms.CharField(label="", max_length=150, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
     password1 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
     password2 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}))
+
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -57,20 +57,20 @@ class ProviderSignUpForm(forms.Form):
             username=self.cleaned_data['username'],
             password=self.cleaned_data['password1']
         )
-        # You will need to create the ServiceProvider object in your view after saving the user
-        return user
+        provider = ServiceProvider.objects.create(
+            user=user,
+            providerName=self.cleaned_data['providerName'],
+            category=self.cleaned_data['category'],
+            first_name=self.cleaned_data['first_name'],
+            last_name=self.cleaned_data['last_name']
+        )
+        return provider
 
 
 class AppointmentSlotForm(forms.Form):
-    date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
-    start_time = forms.TimeField(
-        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'})
-    )
-    end_time = forms.TimeField(
-        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'})
-    )
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
+    end_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
 
 class AppointmentSearchForm(forms.Form):
     category = forms.ChoiceField(

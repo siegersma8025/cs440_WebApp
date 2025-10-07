@@ -60,16 +60,17 @@ def registerProvider(request):
     if request.method == "POST":
         form = ProviderSignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # Create ServiceProvider profile
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password1']
+            )
             ServiceProvider.objects.create(
                 user=user,
                 providerName=form.cleaned_data['providerName'],
-                category=form.cleaned_data['category']
+                category=form.cleaned_data['category'],
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name']
             )
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password1']
-            user = authenticate(username=username, password=password)
             login(request, user)
             messages.success(request, "Registration Successful!")
             return redirect('home')
@@ -81,6 +82,8 @@ def registerProvider(request):
 @login_required
 def userDashboard(request):
     slots = AppointmentSlot.objects.filter(is_booked=False)
+    bookings = Booking.objects.filter(user=request.user)  # Add this line
+
     category_selected = None
     provider_selected = None
     date_selected = None
@@ -107,6 +110,7 @@ def userDashboard(request):
     return render(request, 'userDashboard.html', {
         'form': form,
         'slots': slots,
+        'bookings': bookings,  # Pass bookings to template
     })
 
 @login_required
@@ -155,4 +159,4 @@ def bookAppointment(request, slot_id):
         Booking.objects.create(slot=slot, user=request.user)
         messages.success(request, "Appointment booked successfully!")
         return redirect('userDashboard')
-    return redirect('userdashboard')
+    return redirect('userDashboard')

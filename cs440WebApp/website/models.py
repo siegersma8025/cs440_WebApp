@@ -7,9 +7,11 @@ class ServiceProvider(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     providerName = models.CharField(max_length=50)
     category = models.CharField(max_length=20, choices=categortyChoices)
+    first_name = models.CharField(max_length=50, default="Provider")
+    last_name = models.CharField(max_length=50, default="Name")
 
     def __str__(self):
-        return f"{self.providerName} ({self.get_category_display()})"
+        return f"{self.first_name} {self.last_name} ({self.providerName}, {self.get_category_display()})"
     
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -36,7 +38,7 @@ class AppointmentSlot(models.Model):
     is_booked = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.provider.provider_name}: {self.date} {self.start_time}-{self.end_time}"
+        return f"{self.provider.providerName}: {self.date} {self.start_time}-{self.end_time}"
 
 # Booking: user books an available slot
 class Booking(models.Model):
