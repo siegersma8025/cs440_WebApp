@@ -46,10 +46,6 @@ def registerUser(request):
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name']
             )
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password1']
-            user = authenticate(username=username, password=password)
-            login(request, user)
             messages.success(request, "Registration Successful!")
             return redirect('home')
     else:
@@ -71,7 +67,6 @@ def registerProvider(request):
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name']
             )
-            login(request, user)
             messages.success(request, "Registration Successful!")
             return redirect('home')
     else:

@@ -2,6 +2,7 @@ from django import forms
 from .models import ServiceProvider
 from django.contrib.auth.models import User
 
+# Form that will handle User Registration, on save() it will create a new User object
 class UserSignUpForm(forms.Form):
     first_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}))
     last_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}))
@@ -9,6 +10,7 @@ class UserSignUpForm(forms.Form):
     password1 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
     password2 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}))
 
+    # Validate that passwords match and username is unique
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
@@ -19,6 +21,7 @@ class UserSignUpForm(forms.Form):
             self.add_error('username', "Username already exists.")
         return cleaned_data
 
+    # Create and return the User object
     def save(self):
         user = User.objects.create_user(
             username=self.cleaned_data['username'],
@@ -28,6 +31,7 @@ class UserSignUpForm(forms.Form):
         )
         return user
 
+# Form that will handle Service Provider Registration, on save() it will create a new User and ServiceProvider object
 class ProviderSignUpForm(forms.Form):
     providerCategories = [('', '▼ Select A Provider Type'), ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness')]
     providerName = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Provider Name'}))
@@ -38,8 +42,7 @@ class ProviderSignUpForm(forms.Form):
     password1 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
     password2 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}))
 
-
-
+    # Validate that passwords match, username is unique, and a category is selected
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
@@ -52,6 +55,7 @@ class ProviderSignUpForm(forms.Form):
             self.add_error('category', "Please select a provider type.")
         return cleaned_data
 
+    # Create and return the ServiceProvider object (and associated User object)
     def save(self):
         user = User.objects.create_user(
             username=self.cleaned_data['username'],
@@ -66,12 +70,13 @@ class ProviderSignUpForm(forms.Form):
         )
         return provider
 
-
+# Form for service providers to create appointment slots
 class AppointmentSlotForm(forms.Form):
     date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
     end_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
 
+# Form for users to search for appointment slots
 class AppointmentSearchForm(forms.Form):
     category = forms.ChoiceField(
         choices=[('', 'Select Category')] + ServiceProvider.categortyChoices,
@@ -88,6 +93,8 @@ class AppointmentSearchForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
 
+    # Will dynamically set provider queryset based on selected category 
+    # (Allows for filtering of appointments by provider)
     def __init__(self, *args, **kwargs):
         category_selected = kwargs.pop('category_selected', None)
         super().__init__(*args, **kwargs)
