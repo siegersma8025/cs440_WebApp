@@ -77,9 +77,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'calender', 
-        'USER': 'root',
-        'PASSWORD' : 'password',
-        'HOST' : 'localhost',
+        'USER': 'Group3',
+        'PASSWORD' : 'Gr0upThree@Dmin2025$',
+        'HOST' : '138.49.184.177',
         'PORT' : '3306',
     }
 }
