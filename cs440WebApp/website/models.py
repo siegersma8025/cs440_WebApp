@@ -36,6 +36,9 @@ class AdminProfile(models.Model):
 class AppointmentSlot(models.Model):
     appointmentName = models.CharField(max_length=100, default="Appointment")
     providerUsername = models.CharField(max_length=150, default="provider")
+    providerFirstName = models.CharField(max_length=50, default="Provider") 
+    providerLastName = models.CharField(max_length=50, default="Name")    
+    appointmentType = models.CharField(max_length=50, default="General")   
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()

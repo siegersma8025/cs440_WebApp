@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-
+</br>
+</br>
 <h2>Hello {{ request.user.first_name }}!</h2>
 </br>
 
@@ -8,7 +9,7 @@
 <ul>
     {% for booking in bookings %}
         <li>
-            {{ booking.slot.appointmentName }} with {{ booking.slot.providerUsername }} on {{ booking.slot.date }} from {{ booking.slot.start_time }} to {{ booking.slot.end_time }}
+            <strong>{{ booking.slot.appointmentName }}</strong> with <strong>{{booking.slot.appointmentType}}</strong> provider: <strong>{{ booking.slot.providerFirstName }} {{ booking.slot.providerLastName }}</strong> on <strong>{{ booking.slot.date }}</strong>, {{ booking.slot.start_time }} - {{ booking.slot.end_time }}
         </li>
     {% empty %}
         <li>You have no booked appointments.</li>
@@ -21,7 +22,8 @@
     <thead>
         <tr>
             <th>Appointment Name</th>
-            <th>Provider Username</th>
+            <th>Provider</th>
+            <th>Appointment Type</th>
             <th>Date</th>
             <th>Start Time</th>
             <th>End Time</th>
@@ -33,7 +35,8 @@
         {% for slot in slots %}
         <tr>
             <td>{{ slot.appointmentName }}</td>
-            <td>{{ slot.provider_username }}</td>
+            <td>{{ slot.providerFirstName}} {{slot.providerLastName}}</td>
+            <td>{{ slot.appointmentType }}</td>
             <td>{{ slot.date }}</td>
             <td>{{ slot.start_time }}</td>
             <td>{{ slot.end_time }}</td>

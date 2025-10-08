@@ -6,16 +6,18 @@ from .forms import *
 from .models import *
 
 # Each view is essentially a function that takes in a request and returns a response
-# The response is usually a rendered HTML template
+# The response is one of the html files in the templates folder to display the page
 # The request can be a GET or POST request
 def home(request):
+    # On login form submission
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
+        # If user authentication is successful login the user and redirect to their respective dashboard
         if user is not None:
+            # Login the user
             login(request, user)
-            # Check for Django admin first
             if user.is_superuser or user.is_staff:
                 return redirect('adminDashboard')
             elif hasattr(user, 'serviceprovider'):
@@ -37,15 +39,13 @@ def logoutUser(request):
 
 def registerUser(request):
     if request.method == "POST":
+        # Create the "User" form instance
         form = UserSignUpForm(request.POST)
         if form.is_valid():
+            # Create User object within the form's save() method
             user = form.save()
-            # Create UserProfile object
-            UserProfile.objects.create(
-                user=user,
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name']
-            )
+            # Create UserProfile object that will get sent to database through the models.py file
+            UserProfile.objects.create(user = user, first_name = form.cleaned_data['first_name'], last_name = form.cleaned_data['last_name'])
             messages.success(request, "Registration Successful!")
             return redirect('home')
     else:
@@ -54,9 +54,11 @@ def registerUser(request):
 
 def registerProvider(request):
     if request.method == "POST":
+        # Create the "ServiceProvider" form instance
         form = ProviderSignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()  # This already creates both User and ServiceProvider
+            # Create User and ServiceProvider objects within the form's save() method
+            form.save()
             messages.success(request, "Registration Successful!")
             return redirect('home')
     else:
@@ -64,63 +66,62 @@ def registerProvider(request):
     return render(request, 'registerProvider.html', {'form': form})
 
 
-
-
 @login_required
 def providerDashboard(request):
     provider = ServiceProvider.objects.filter(user=request.user).first()
-    slots = AppointmentSlot.objects.filter(providerUsername=request.user.username) if provider else []
-    slot_form = AppointmentSlotForm()
+    if provider:
+        slots = AppointmentSlot.objects.filter(providerUsername=request.user.username)
+    else: 
+        slots = []
+
+    slotForm = AppointmentSlotForm()
 
     if request.method == "POST":
-        slot_form = AppointmentSlotForm(request.POST)
-        if slot_form.is_valid() and provider:
+        # Create Appointment Slot form 
+        slotForm = AppointmentSlotForm(request.POST)
+        # If form is valid and provider exists, create the AppointmentSlot object in the database
+        if slotForm.is_valid() and provider:
             AppointmentSlot.objects.create(
-                appointmentName=slot_form.cleaned_data['appointmentName'],
-                providerUsername=request.user.username,  # Save provider's username
-                date=slot_form.cleaned_data['date'],
-                start_time=slot_form.cleaned_data['start_time'],
-                end_time=slot_form.cleaned_data['end_time']
+                appointmentName=slotForm.cleaned_data['appointmentName'],
+                providerUsername=request.user.username,
+                providerFirstName=request.user.first_name,
+                providerLastName=request.user.last_name,
+                appointmentType=provider.category, 
+                date=slotForm.cleaned_data['date'],
+                start_time=slotForm.cleaned_data['start_time'],
+                end_time=slotForm.cleaned_data['end_time']
             )
             messages.success(request, "Appointment slot added!")
             return redirect('providerDashboard')
 
-    return render(request, 'providerDashboard.html', {
-        'slots': slots,
-        'slot_form': slot_form,
-        'provider': provider
-    })
+    return render(request, 'providerDashboard.html', {'slots': slots,'slot_form': slotForm,'provider': provider})
 
 @login_required
 def userDashboard(request):
     slots = AppointmentSlot.objects.filter(is_booked=False)
     bookings = Booking.objects.filter(user=request.user)
 
-    category_selected = None
-    date_selected = None
+    categorySelected = None
+    dateSelected = None
 
     if request.method == "POST":
         form = AppointmentSearchForm(request.POST)
         if form.is_valid():
-            category_selected = form.cleaned_data['category']
-            date_selected = form.cleaned_data['date']
+            categorySelected = form.cleaned_data['category']
+            dateSelected = form.cleaned_data['date']
 
-            if category_selected:
+            if categorySelected:
                 # Get usernames of providers in this category
-                provider_usernames = ServiceProvider.objects.filter(category=category_selected).values_list('user__username', flat=True)
+                provider_usernames = ServiceProvider.objects.filter(category=categorySelected).values_list('user__username', flat=True)
                 slots = slots.filter(provider_username__in=provider_usernames)
-            if date_selected:
-                slots = slots.filter(date=date_selected)
+            if dateSelected:
+                slots = slots.filter(date=dateSelected)
     else:
         form = AppointmentSearchForm()
 
-    form = AppointmentSearchForm(request.POST or None, category_selected=category_selected)
+    form = AppointmentSearchForm(request.POST or None, category_selected=categorySelected)
 
-    return render(request, 'userDashboard.html', {
-        'form': form,
-        'slots': slots,
-        'bookings': bookings,
-    })
+    return render(request, 'userDashboard.html', {'form': form,'slots': slots,'bookings': bookings,})
     
 @login_required
 def adminDashboard(request):
