@@ -42,6 +42,10 @@ class ProviderSignUpForm(forms.Form):
     password1 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
     password2 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}))
 
+    class Meta:
+        model = ServiceProvider
+        fields = ['qualifications', 'first_name', 'last_name', 'category', 'username', 'password1', 'password2']
+
     # Validate that passwords match, username is unique, and a category is selected
     def clean(self):
         cleaned_data = super().clean()
@@ -68,7 +72,7 @@ class ProviderSignUpForm(forms.Form):
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name']
         )
-        return provider
+        return user
 
 # Form for service providers to create appointment slots
 class AppointmentSlotForm(forms.Form):

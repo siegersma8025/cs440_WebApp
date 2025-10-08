@@ -56,19 +56,13 @@ def registerProvider(request):
     if request.method == "POST":
         form = ProviderSignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # Create ServiceProvider object
-            ServiceProvider.objects.create(
-                user=user,
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1']
-            )
-
+            user = form.save()  # This already creates both User and ServiceProvider
             messages.success(request, "Registration Successful!")
             return redirect('home')
     else:
         form = ProviderSignUpForm()
     return render(request, 'registerProvider.html', {'form': form})
+
 
 
 

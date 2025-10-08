@@ -1,6 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Available Appointments</h2>
+
+<h2>Hello {{ request.user.first_name }}!</h2>
+</br>
+
+<h3 class="mt-5">Your Booked Appointments</h3>
+<ul>
+    {% for booking in bookings %}
+        <li>
+            {{ booking.slot.appointmentName }} with {{ booking.slot.providerUsername }} on {{ booking.slot.date }} from {{ booking.slot.start_time }} to {{ booking.slot.end_time }}
+        </li>
+    {% empty %}
+        <li>You have no booked appointments.</li>
+    {% endfor %}
+</ul>
+
+<h3 class="mt-5">Available Appointment Slots</h3>
+</table>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -44,4 +60,5 @@
         {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}
