@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'website/css/providerDashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="provider-header">
+    <h2>Hello {{ provider.first_name }}!</h2>
+    <div class="provider-qualifications">
+        <p><strong>Qualifications:</strong> {{ provider.qualifications }}</p>
+    </div>
+</div>
+
+<div class="slots-section">
+    <h2>Your Appointment Slots</h2>
+    <ul class="slots-list">
+        {% for slot in slots %}
+            <li class="slot-item">
+                <strong>{{ slot.appointmentName }}</strong> by <strong>{{ slot.providerUsername }}</strong>: {{ slot.date }} {{ slot.start_time }} - {{ slot.end_time }}
+                {% if slot.is_booked %}
+                    <span class="slot-status-booked">Booked</span>
+                {% else %}
+                    <span class="slot-status-available">Available</span>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li class="no-slots">You have not added any slots yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<hr class="section-divider">
+
+<div class="add-slot-section">
+    <h3>Add Appointment Slot</h3>
+    <form method="POST" class="row g-3 slot-form">
+        {% csrf_token %}
+        <div class="col-md-3">
+            {{ slot_form.appointmentName.label_tag }} {{ slot_form.appointmentName }}
+        </div>
+        <div class="col-md-3">
+            {{ slot_form.date.label_tag }} {{ slot_form.date }}
+        </div>
+        <div class="col-md-3">
+            {{ slot_form.start_time.label_tag }} {{ slot_form.start_time }}
+        </div>
+        <div class="col-md-3">
+            {{ slot_form.end_time.label_tag }} {{ slot_form.end_time }}
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-add-slot">Add Slot</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

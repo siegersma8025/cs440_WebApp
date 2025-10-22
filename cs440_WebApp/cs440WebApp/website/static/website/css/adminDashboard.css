@@ -1,0 +1,64 @@
+/* Admin Dashboard styles */
+.admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.admin-header {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.admin-header h2 {
+    margin: 0;
+    font-weight: 300;
+    font-size: 2.5rem;
+}
+
+.admin-welcome {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.admin-features {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.feature-item {
+    padding: 20px;
+    margin: 10px 0;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #dc3545;
+}
+
+.feature-item h4 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+.btn-admin {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    padding: 12px 30px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-admin:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}

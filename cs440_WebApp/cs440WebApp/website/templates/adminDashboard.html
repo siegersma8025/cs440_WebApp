@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'website/css/adminDashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h2>Hello Admin</h2>
+    </div>
+    
+    <div class="admin-welcome">
+        <h3>Welcome to the Admin Dashboard</h3>
+        <p>Manage your appointment booking system from here.</p>
+    </div>
+    
+    <div class="admin-features">
+        <div class="feature-item">
+            <h4>User Management</h4>
+            <p>Oversee all registered users and service providers.</p>
+        </div>
+        
+        <div class="feature-item">
+            <h4>Appointment Oversight</h4>
+            <p>Monitor all appointments and booking activities.</p>
+        </div>
+        
+        <div class="feature-item">
+            <h4>System Analytics</h4>
+            <p>View system-wide statistics and performance metrics.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

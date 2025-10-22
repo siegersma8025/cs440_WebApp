@@ -1,0 +1,83 @@
+/* Base template styles */
+.container {
+    margin-top: 20px;
+}
+
+/* Message alerts styling */
+.alert {
+    margin-bottom: 20px;
+}
+
+.alert .btn-close {
+    margin-left: auto;
+}
+
+/* General body styling */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom container padding */
+.container {
+    padding-top: 20px;
+}
+
+/* Shared password field security styling - applied to all password fields */
+input[type="password"] {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: normal;
+}
+
+/* Ensure password characters are hidden across browsers */
+input[type="password"]::-ms-reveal {
+    display: none;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+    visibility: hidden;
+}
+
+/* Shared form container styling */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.form-wrapper {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Shared form control styling */
+.form-container .form-control {
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-container .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Shared button styling */
+.btn-form-submit {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-form-submit:hover {
+    transform: translateY(-1px);
+}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'website/css/registerProvider.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="provider-register-container">
+    <div class="provider-form">
+        <h2>Register as a Service Provider</h2>
+        <form method="post" class="slot-form">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.first_name.label_tag }}{{ form.first_name }}
+            </div>
+            <div class="mb-3">
+                {{ form.last_name.label_tag }}{{ form.last_name }}
+            </div>
+            <div class="mb-3">
+                {{ form.category.label_tag }}{{ form.category }}
+            </div>
+            <div class="mb-3">
+                {{ form.qualifications.label_tag }}{{ form.qualifications }}
+            </div>
+            <div class="mb-3">
+                {{ form.username.label_tag }}{{ form.username }}
+            </div>
+            <div class="mb-3">
+                {{ form.password1.label_tag }}{{ form.password1 }}
+            </div>
+            <div class="mb-3">
+                {{ form.password2.label_tag }}{{ form.password2 }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-provider-register">Register</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

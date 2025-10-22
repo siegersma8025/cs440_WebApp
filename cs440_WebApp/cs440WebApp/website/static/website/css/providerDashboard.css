@@ -1,0 +1,108 @@
+/* Provider Dashboard styles */
+.provider-header {
+    background: linear-gradient(135deg, #6f42c1, #5a32a3);
+    color: white;
+    padding: 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.provider-header h2 {
+    margin: 0 0 10px 0;
+    font-weight: 300;
+}
+
+.provider-qualifications {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.slots-section {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.slots-list {
+    list-style: none;
+    padding: 0;
+}
+
+.slot-item {
+    background: #f8f9fa;
+    margin: 10px 0;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #6f42c1;
+}
+
+.slot-item strong {
+    color: #6f42c1;
+}
+
+.slot-status-available {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.slot-status-booked {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.add-slot-section {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add-slot-section h3 {
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 300;
+}
+
+.slot-form .form-control {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+}
+
+.slot-form .form-control:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+.btn-add-slot {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    padding: 12px 30px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-add-slot:hover {
+    background-color: #5a32a3;
+    transform: translateY(-1px);
+}
+
+.no-slots {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 20px;
+}
+
+.section-divider {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #6f42c1, transparent);
+    margin: 30px 0;
+}

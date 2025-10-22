@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'website/css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="home-container">
+ <!-- If user is authenticated, display a message to the page -->
+{% if user.is_authenticated %}
+<div class="welcome-message">
+    <h1>Welcome {{ user.username }}</h1>
+</div>
+
+ <!-- If not create the username/password forms for the user to use to login -->
+{% else %}
+
+<div class="login-form">
+ <!-- Login text -->
+<h1>Login</h1>
+
+ <!-- If posting the home request (not authenticated/on home page), create the username/password forms to be entered -->
+<form method="POST" action="{% url 'home' %}">
+    {% csrf_token %}
+    
+   <!-- Username box -->
+  <div class="mb-3">
+    <input type="text" class="form-control" name="username" placeholder="Username" 
+    required autocomplete="username" spellcheck="false">
+  </div>
+
+   <!-- Password Box -->
+  <div class="mb-3">
+    <input type="password" class="form-control" name="password" placeholder="Password" 
+    required autocomplete="current-password" spellcheck="false">
+  </div>
+  
+    <!-- Submit Button -->
+  <button type="submit" class="btn btn-primary btn-login">Login</button>
+</form>
+</div>
+
+{% endif %}
+</div>
+
+{% endblock %}
