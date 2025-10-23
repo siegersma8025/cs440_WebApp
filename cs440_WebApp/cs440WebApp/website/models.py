@@ -35,7 +35,10 @@ class AdminProfile(models.Model):
 # AppointmentSlot: available slots created by service providers
 class AppointmentSlot(models.Model):
     appointmentName = models.CharField(max_length=100, default="Appointment")
+    appointmentType = models.CharField(max_length=100, default="General")
     providerUsername = models.CharField(max_length=150, default="provider")
+    providerFirstName = models.CharField(max_length=50, default="FirstName")
+    providerLastName = models.CharField(max_length=50, default="LastName")
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
