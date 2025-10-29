@@ -162,6 +162,8 @@ def providerDashboard(request):
             AppointmentSlot.objects.create(
                 appointmentName=slot_form.cleaned_data['appointmentName'],
                 providerUsername=request.user.username,
+                providerFirstName=request.user.first_name,
+                providerLastName=request.user.last_name,
                 date=slot_form.cleaned_data['date'],
                 start_time=slot_form.cleaned_data['start_time'],
                 end_time=slot_form.cleaned_data['end_time']
