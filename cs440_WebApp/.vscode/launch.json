@@ -1,0 +1,117 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🚀 Django: Complete Setup & Run (ONE CLICK)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/setup_and_run.py",
+            "args": [],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "cs440WebApp.settings",
+                "PYTHONPATH": "${workspaceFolder}/cs440WebApp"
+            },
+            "justMyCode": false,
+            "redirectOutput": true,
+            "presentation": {
+                "hidden": false,
+                "group": "⭐ Main",
+                "order": 1
+            }
+        },
+        {
+            "name": "Django: Run Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/cs440WebApp/manage.py",
+            "args": [
+                "runserver",
+                "127.0.0.1:8000"
+            ],
+            "django": true,
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/cs440WebApp",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "cs440WebApp.settings"
+            },
+            "autoReload": {
+                "enable": true
+            },
+            "redirectOutput": true,
+            "presentation": {
+                "group": "🔧 Development",
+                "order": 2
+            }
+        },
+        {
+            "name": "Django: Run Server (Debug Mode)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/cs440WebApp/manage.py",
+            "args": [
+                "runserver",
+                "--noreload",
+                "127.0.0.1:8000"
+            ],
+            "django": true,
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/cs440WebApp",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "cs440WebApp.settings",
+                "DJANGO_DEBUG": "True"
+            },
+            "autoReload": {
+                "enable": false
+            },
+            "redirectOutput": true,
+            "presentation": {
+                "group": "🔧 Development",
+                "order": 3
+            }
+        },
+        {
+            "name": "Django: Run Migrations",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/cs440WebApp/manage.py",
+            "args": [
+                "migrate"
+            ],
+            "django": true,
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/cs440WebApp",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "cs440WebApp.settings"
+            },
+            "presentation": {
+                "group": "🛠️ Utilities",
+                "order": 4
+            }
+        },
+        {
+            "name": "Django: Create Superuser",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/cs440WebApp/manage.py",
+            "args": [
+                "createsuperuser"
+            ],
+            "django": true,
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/cs440WebApp",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "cs440WebApp.settings"
+            },
+            "presentation": {
+                "group": "🛠️ Utilities",
+                "order": 5
+            }
+        }
+    ]
+}

@@ -1,6 +1,8 @@
 from django import forms
 from .models import ServiceProvider
 from django.contrib.auth.models import User
+from django.db import connection
+import re
 
 # Form that will handle User Registration, on save() it will create a new User object
 class UserSignUpForm(forms.Form):
@@ -10,15 +12,43 @@ class UserSignUpForm(forms.Form):
     password1 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password', 'autocomplete': 'new-password', 'spellcheck': 'false'}))
     password2 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password', 'autocomplete': 'new-password', 'spellcheck': 'false'}))
 
-    # Validate that passwords match and username is unique
+    def clean_username(self):
+        """Validate username field specifically"""
+        username = self.cleaned_data.get('username')
+        
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        
+        # Check username format (alphanumeric and underscores only, must start with letter)
+        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_]*$', username):
+            raise forms.ValidationError("Username must start with a letter and contain only letters, numbers, and underscores.")
+        
+        # Check minimum length
+        if len(username) < 3:
+            raise forms.ValidationError("Username must be at least 3 characters long.")
+        
+        # Check against auth_user table for duplicates (both users and providers)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT username FROM auth_user WHERE LOWER(username) = LOWER(%s)", [username])
+            if cursor.fetchone():
+                raise forms.ValidationError("This username is already taken. Please choose a different username.")
+        
+        return username
+
+    # Validate that passwords match and additional validation
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
+        
+        # Password matching validation
         if password1 and password2 and password1 != password2:
             self.add_error('password2', "Passwords do not match.")
-        if User.objects.filter(username=cleaned_data.get("username")).exists():
-            self.add_error('username', "Username already exists.")
+        
+        # Password strength validation
+        if password1 and len(password1) < 8:
+            self.add_error('password1', "Password must be at least 8 characters long.")
+            
         return cleaned_data
 
     # Create and return the User object
@@ -42,17 +72,47 @@ class ProviderSignUpForm(forms.Form):
     password1 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password', 'autocomplete': 'new-password', 'spellcheck': 'false'}))
     password2 = forms.CharField(label="", widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password', 'autocomplete': 'new-password', 'spellcheck': 'false'}))
 
+    def clean_username(self):
+        """Validate username field specifically for providers"""
+        username = self.cleaned_data.get('username')
+        
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        
+        # Check username format (alphanumeric and underscores only, must start with letter)
+        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_]*$', username):
+            raise forms.ValidationError("Username must start with a letter and contain only letters, numbers, and underscores.")
+        
+        # Check minimum length
+        if len(username) < 3:
+            raise forms.ValidationError("Username must be at least 3 characters long.")
+        
+        # Check against auth_user table for duplicates (both users and providers)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT username FROM auth_user WHERE LOWER(username) = LOWER(%s)", [username])
+            if cursor.fetchone():
+                raise forms.ValidationError("This username is already taken. Please choose a different username.")
+        
+        return username
+
     # Validate that passwords match, username is unique, and a category is selected
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
+        
+        # Password matching validation
         if password1 and password2 and password1 != password2:
             self.add_error('password2', "Passwords do not match.")
-        if User.objects.filter(username=cleaned_data.get("username")).exists():
-            self.add_error('username', "Username already exists.")
+        
+        # Password strength validation
+        if password1 and len(password1) < 8:
+            self.add_error('password1', "Password must be at least 8 characters long.")
+        
+        # Category validation
         if cleaned_data.get("category") == "":
             self.add_error('category', "Please select a provider type.")
+            
         return cleaned_data
 
     # Create and return the ServiceProvider object (and associated User object)
