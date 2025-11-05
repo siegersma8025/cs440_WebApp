@@ -6,6 +6,26 @@
 {% endblock %}
 
 {% block content %}
+
+<h2>Hello {{ request.user.first_name }}!</h2>
+</br>
+
+<div class="slots-section">
+    <h2>Booked Appointments</h2>
+    <ul class="slots-list">
+        {% for booking in bookings %}
+            <li class="slot-item">
+                <strong>{{ booking.slot.appointmentName }}</strong> with <strong>{{booking.slot.appointmentType}}</strong> provider: <strong>{{ booking.slot.providerFirstName }} {{ booking.slot.providerLastName }}</strong> on <strong>{{ booking.slot.date }}</strong>, {{ booking.slot.start_time }} - {{ booking.slot.end_time }}
+            </li>
+        {% empty %}
+            <li class="no-slots">You have no booked appointments.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<hr class="section-divider">
+
+
 <div class="dashboard-header">
     <h2>Available Appointments</h2>
 </div>
