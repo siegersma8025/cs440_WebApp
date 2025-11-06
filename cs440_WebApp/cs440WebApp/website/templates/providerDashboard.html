@@ -14,11 +14,11 @@
 </div>
 
 <div class="slots-section">
-    <h2>Your Appointment Slots</h2>
+    <h2>Your Appointments</h2>
     <ul class="slots-list">
         {% for slot in slots %}
             <li class="slot-item">
-                <strong>{{ slot.appointmentName }}</strong> by <strong>{{ slot.providerUsername }}</strong>: {{ slot.date }} {{ slot.start_time }} - {{ slot.end_time }}
+                <strong>{{ slot.appointmentName }}</strong> on <strong>{{ slot.date }}</strong> at <strong>{{ slot.start_time }} - {{ slot.end_time }}</strong>    
                 {% if slot.is_booked %}
                     <span class="slot-status-booked">Booked</span>
                 {% else %}

@@ -161,6 +161,7 @@ def providerDashboard(request):
         if slot_form.is_valid():
             AppointmentSlot.objects.create(
                 appointmentName=slot_form.cleaned_data['appointmentName'],
+                appointmentType = provider.category,
                 providerUsername=request.user.username,
                 providerFirstName=request.user.first_name,
                 providerLastName=request.user.last_name,
@@ -212,8 +213,23 @@ def userDashboard(request):
 @never_cache
 @admin_required
 def adminDashboard(request):
-    return render(request, 'adminDashboard.html')
-    
+    items = []
+    slots = AppointmentSlot.objects.all()
+    for slot in slots:
+        booking = getattr(slot, 'booking', None)
+        user_name = booking.user.get_full_name() if booking else "Unbooked"
+        items.append({
+            'user_name': user_name,
+            'provider_name': f"{slot.providerFirstName} {slot.providerLastName}",
+            'appointment_name': slot.appointmentName,
+            'appointment_type': slot.appointmentType,
+            'date': slot.date.strftime('%m-%d-%Y'),
+            'time': f"{slot.start_time.strftime('%H:%M')} - {slot.end_time.strftime('%H:%M')}",
+        })
+    types = sorted(set(slot.appointmentType for slot in slots))
+    return render(request, 'adminDashboard.html', {'items': items, 'types': types})
+
+
 @user_required
 @csrf_protect
 def bookAppointment(request, slot_id):

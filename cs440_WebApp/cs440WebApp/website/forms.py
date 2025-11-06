@@ -33,7 +33,7 @@ class UserSignUpForm(forms.Form):
 
 # Form that will handle Service Provider Registration, on save() it will create a new User and ServiceProvider object
 class ProviderSignUpForm(forms.Form):
-    providerCategories = [('', '▼ Select A Provider Type'), ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness')]
+    providerCategories = [('', '▼ Select A Provider Type'), ('Medical', 'Medical'), ('Beauty', 'Beauty'), ('Fitness', 'Fitness')]
     qualifications = forms.CharField(label="", max_length=255, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Qualifications', 'autocomplete': 'off'}))
     first_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name', 'autocomplete': 'given-name'}))
     last_name = forms.CharField(label="", max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name', 'autocomplete': 'family-name'}))   

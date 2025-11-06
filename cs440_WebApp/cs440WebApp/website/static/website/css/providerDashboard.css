@@ -47,11 +47,13 @@
 .slot-status-available {
     color: #28a745;
     font-weight: 600;
+    align-items: right;
 }
 
 .slot-status-booked {
     color: #dc3545;
     font-weight: 600;
+    align-items: right;
 }
 
 .add-slot-section {

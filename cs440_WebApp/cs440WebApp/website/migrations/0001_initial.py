@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('providerName', models.CharField(max_length=50)),
-                ('category', models.CharField(choices=[('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness')], max_length=20)),
+                ('category', models.CharField(choices=[('Medical', 'Medical'), ('Beauty', 'Beauty'), ('Fitness', 'Fitness')], max_length=20)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
