@@ -1,36 +1,79 @@
 {% extends 'base.html' %}
-
 {% block extra_css %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'website/css/adminDashboard.css' %}">
 {% endblock %}
-
 {% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h2>Hello Admin</h2>
-    </div>
-    
-    <div class="admin-welcome">
-        <h3>Welcome to the Admin Dashboard</h3>
-        <p>Manage your appointment booking system from here.</p>
-    </div>
-    
-    <div class="admin-features">
-        <div class="feature-item">
-            <h4>User Management</h4>
-            <p>Oversee all registered users and service providers.</p>
-        </div>
-        
-        <div class="feature-item">
-            <h4>Appointment Oversight</h4>
-            <p>Monitor all appointments and booking activities.</p>
-        </div>
-        
-        <div class="feature-item">
-            <h4>System Analytics</h4>
-            <p>View system-wide statistics and performance metrics.</p>
-        </div>
-    </div>
+
+<h2>Hello Admin!</h2>
+<br>
+
+
+<div class="search-filters">
+    <input type="text" id="searchInput" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;">
+    <select id="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;">
+        <option value="">All Types</option>
+        {% for t in types %}
+        <option value="{{ t }}">{{ t }}</option>
+        {% endfor %}
+    </select>
+    <input type="date" id="dateFilter" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;">
 </div>
+
+<div class="appointments-table">
+    <table id="adminTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Provider Name</th>
+                <th>Appointment Name</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr data-type="{{ item.appointment_type }}" data-date="{{ item.date }}">
+                <td>{{ item.user_name }}</td>
+                <td>{{ item.provider_name }}</td>
+                <td>{{ item.appointment_name }}</td>
+                <td>{{ item.appointment_type }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.time }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="no-appointments">No appointments found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function filterTable() {
+    let search = document.getElementById('searchInput').value.toLowerCase();
+    let type = document.getElementById('typeFilter').value;
+    let date = document.getElementById('dateFilter').value;
+    if (date) {
+        let parts = date.split('-');
+        date = parts[1] + '-' + parts[2] + '-' + parts[0];
+    }
+    let rows = document.querySelectorAll('#adminTable tbody tr');
+    rows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        let rowType = row.getAttribute('data-type');
+        let rowDate = row.getAttribute('data-date');
+        let show = true;
+        if (search && !text.includes(search)) show = false;
+        if (type && rowType !== type) show = false;
+        if (date && rowDate !== date) show = false;
+        row.style.display = show ? '' : 'none';
+    });
+}
+document.getElementById('searchInput').addEventListener('keyup', filterTable);
+document.getElementById('typeFilter').addEventListener('change', filterTable);
+document.getElementById('dateFilter').addEventListener('change', filterTable);
+</script>
 {% endblock %}

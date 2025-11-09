@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 # Service provider object/model that will be used to push to database
 class ServiceProvider(models.Model):
-    categoryChoices = [ ('medical', 'Medical'), ('beauty', 'Beauty'), ('fitness', 'Fitness'),]
+    categoryChoices = [ ('Medical', 'Medical'), ('Beauty', 'Beauty'), ('Fitness', 'Fitness'),]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     category = models.CharField(max_length=20, choices=categoryChoices)
     qualifications = models.TextField(max_length=200, default="Qualifications")
