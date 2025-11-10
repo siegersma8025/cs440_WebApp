@@ -159,17 +159,20 @@ def providerDashboard(request):
     if request.method == "POST":
         slot_form = AppointmentSlotForm(request.POST)
         if slot_form.is_valid():
-            AppointmentSlot.objects.create(
-                appointmentName=slot_form.cleaned_data['appointmentName'],
-                appointmentType = provider.category,
-                providerUsername=request.user.username,
-                providerFirstName=request.user.first_name,
-                providerLastName=request.user.last_name,
-                date=slot_form.cleaned_data['date'],
-                start_time=slot_form.cleaned_data['start_time'],
-                end_time=slot_form.cleaned_data['end_time']
-            )
-            messages.success(request, "Appointment slot added!")
+            try:
+                AppointmentSlot.objects.create(
+                    appointmentName=slot_form.cleaned_data['appointmentName'],
+                    appointmentType = provider.category,
+                    providerUsername=request.user.username,
+                    providerFirstName=request.user.first_name,
+                    providerLastName=request.user.last_name,
+                    date=slot_form.cleaned_data['date'],
+                    start_time=slot_form.cleaned_data['start_time'],
+                    end_time=slot_form.cleaned_data['end_time']
+                )
+                messages.success(request, "Appointment slot added!")
+            except:
+                messages.error(request, "No duplicate time slots allowed!")
             return redirect('providerDashboard')
 
     return render(request, 'providerDashboard.html', {

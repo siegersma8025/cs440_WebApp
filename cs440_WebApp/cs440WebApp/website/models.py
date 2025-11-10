@@ -44,6 +44,19 @@ class AppointmentSlot(models.Model):
     end_time = models.TimeField()
     is_booked = models.BooleanField(default=False)
 
+    def save(self, *args, **kwargs):
+        # Check if duplicate exists
+        duplicate = AppointmentSlot.objects.filter(
+            providerUsername=self.providerUsername,
+            date=self.date,
+            start_time=self.start_time,
+            end_time=self.end_time
+        ).exclude(pk=self.pk).exists()
+        
+        if duplicate:
+            raise Exception("This time slot already exists!")
+        
+        super().save(*args, **kwargs)
     # String representation of an "AppointmentSlot" object
     def __str__(self):
         return f"{self.appointmentName}: {self.date} {self.start_time}-{self.end_time}"
