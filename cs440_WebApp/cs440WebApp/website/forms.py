@@ -77,6 +77,29 @@ class AppointmentSlotForm(forms.Form):
     start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
     end_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
 
+    # Validate that appointment date and time are not in the past
+    def clean(self):
+        from datetime import datetime
+        cleaned_data = super().clean()
+        date = cleaned_data.get("date")
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+
+        # Check if date is in the past
+        if date and date < datetime.now().date():
+            self.add_error('date', "Appointment date cannot be in the past.")
+        
+        # Check if start time is in the past (for today's date)
+        if date and start_time and date == datetime.now().date():
+            if start_time < datetime.now().time():
+                self.add_error('start_time', "Appointment start time cannot be in the past.")
+        
+        # Check if end time is before start time
+        if start_time and end_time and end_time <= start_time:
+            self.add_error('end_time', "End time must be after start time.")
+        
+        return cleaned_data
+
 # Form for users to search for appointment slots
 class AppointmentSearchForm(forms.Form):
     category = forms.ChoiceField(choices=[('', 'Select Category')] + ServiceProvider.categoryChoices, required=False, widget=forms.Select(attrs={'class': 'form-select'}))

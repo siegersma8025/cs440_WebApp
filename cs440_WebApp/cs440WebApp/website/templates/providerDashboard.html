@@ -35,19 +35,52 @@
 
 <div class="add-slot-section">
     <h3>Add Appointment Slot</h3>
+    
+    {% if slot_form.errors %}
+        <div class="alert alert-danger" role="alert">
+            <strong>Please correct the following errors:</strong>
+            <ul class="mb-0">
+                {% for field in slot_form %}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                {% if slot_form.non_field_errors %}
+                    {% for error in slot_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+    {% endif %}
+    
     <form method="POST" class="row g-3 slot-form">
         {% csrf_token %}
         <div class="col-md-3">
             {{ slot_form.appointmentName.label_tag }} {{ slot_form.appointmentName }}
+            {% if slot_form.appointmentName.errors %}
+                <div class="text-danger small">{{ slot_form.appointmentName.errors.0 }}</div>
+            {% endif %}
         </div>
         <div class="col-md-3">
             {{ slot_form.date.label_tag }} {{ slot_form.date }}
+            {% if slot_form.date.errors %}
+                <div class="text-danger small">{{ slot_form.date.errors.0 }}</div>
+            {% endif %}
         </div>
         <div class="col-md-3">
             {{ slot_form.start_time.label_tag }} {{ slot_form.start_time }}
+            {% if slot_form.start_time.errors %}
+                <div class="text-danger small">{{ slot_form.start_time.errors.0 }}</div>
+            {% endif %}
         </div>
         <div class="col-md-3">
             {{ slot_form.end_time.label_tag }} {{ slot_form.end_time }}
+            {% if slot_form.end_time.errors %}
+                <div class="text-danger small">{{ slot_form.end_time.errors.0 }}</div>
+            {% endif %}
         </div>
         <div class="col-12">
             <button type="submit" class="btn btn-primary btn-add-slot">Add Slot</button>
