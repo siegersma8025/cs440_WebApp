@@ -8,37 +8,38 @@
 <h2>Hello Admin!</h2>
 <br>
 
-
-<div class="search-filters">
-    <input type="text" id="searchInput" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;">
-    <select id="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;">
+<form method="get" class="search-filters" id="filterForm">
+    <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="searchInput">
+    <select name="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="typeFilter">
         <option value="">All Types</option>
         {% for t in types %}
-        <option value="{{ t }}">{{ t }}</option>
+        <option value="{{ t }}" {% if t == typeFilter %}selected{% endif %}>{{ t }}</option>
         {% endfor %}
     </select>
-    <input type="date" id="dateFilter" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;">
-</div>
+    <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="dateFilter">
+    <button type="submit" style="padding: 8px 16px; border: none; background: #a30404; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
+    <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #a30404; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
+</form>
 
 <div class="appointments-table">
     <table id="adminTable" class="table table-striped">
         <thead>
             <tr>
-                <th>User Name</th>
-                <th>Provider Name</th>
                 <th>Appointment Name</th>
-                <th>Type</th>
+                <th>Appointment Type</th>
+                <th>User</th>
+                <th>Provider</th>
                 <th>Date</th>
                 <th>Time</th>
             </tr>
         </thead>
         <tbody>
             {% for item in items %}
-            <tr data-type="{{ item.appointment_type }}" data-date="{{ item.date }}">
-                <td>{{ item.user_name }}</td>
-                <td>{{ item.provider_name }}</td>
+            <tr>
                 <td>{{ item.appointment_name }}</td>
                 <td>{{ item.appointment_type }}</td>
+                <td>{{ item.user_name }}</td>
+                <td>{{ item.provider_name }}</td>
                 <td>{{ item.date }}</td>
                 <td>{{ item.time }}</td>
             </tr>
@@ -51,29 +52,4 @@
     </table>
 </div>
 
-<script>
-function filterTable() {
-    let search = document.getElementById('searchInput').value.toLowerCase();
-    let type = document.getElementById('typeFilter').value;
-    let date = document.getElementById('dateFilter').value;
-    if (date) {
-        let parts = date.split('-');
-        date = parts[1] + '-' + parts[2] + '-' + parts[0];
-    }
-    let rows = document.querySelectorAll('#adminTable tbody tr');
-    rows.forEach(row => {
-        let text = row.textContent.toLowerCase();
-        let rowType = row.getAttribute('data-type');
-        let rowDate = row.getAttribute('data-date');
-        let show = true;
-        if (search && !text.includes(search)) show = false;
-        if (type && rowType !== type) show = false;
-        if (date && rowDate !== date) show = false;
-        row.style.display = show ? '' : 'none';
-    });
-}
-document.getElementById('searchInput').addEventListener('keyup', filterTable);
-document.getElementById('typeFilter').addEventListener('change', filterTable);
-document.getElementById('dateFilter').addEventListener('change', filterTable);
-</script>
 {% endblock %}

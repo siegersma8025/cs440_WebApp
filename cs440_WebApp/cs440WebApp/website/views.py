@@ -3,8 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
+# Import forms models, and helper utilities
 from .forms import *
 from .models import *
+from .utils import *
+
 
 # Helper function to reduce duplicate authentication code
 def check_authentication_and_role(request, role_check, error_message):
@@ -213,21 +216,28 @@ def userDashboard(request):
 @never_cache
 @admin_required
 def adminDashboard(request):
-    items = []
+    # Get populated filter parameters from GET request
+    search = request.GET.get('searchInput', '').lower()
+    typeFilter = request.GET.get('typeFilter', '')
+    dateFilter = request.GET.get('dateFilter', '')
+
+    # Get appointment slots and filter them
     slots = AppointmentSlot.objects.all()
+    items = filterAppointments(slots, search, typeFilter, dateFilter)
+    types = set()
     for slot in slots:
-        booking = getattr(slot, 'booking', None)
-        user_name = booking.user.get_full_name() if booking else "Unbooked"
-        items.append({
-            'user_name': user_name,
-            'provider_name': f"{slot.providerFirstName} {slot.providerLastName}",
-            'appointment_name': slot.appointmentName,
-            'appointment_type': slot.appointmentType,
-            'date': slot.date.strftime('%m-%d-%Y'),
-            'time': f"{slot.start_time.strftime('%H:%M')} - {slot.end_time.strftime('%H:%M')}",
-        })
-    types = sorted(set(slot.appointmentType for slot in slots))
-    return render(request, 'adminDashboard.html', {'items': items, 'types': types})
+        type = slot.appointmentType.strip()
+        types.add(type)
+    types = sorted(types)
+
+    # Render the admin dashboard with filtered items and available types
+    return render(request, 'adminDashboard.html', {
+        'items': items,
+        'types': types,
+        'searchInput': request.GET.get('searchInput', ''),
+        'typeFilter': request.GET.get('typeFilter', ''),
+        'dateFilter': request.GET.get('dateFilter', ''),
+    })
 
 
 @user_required
