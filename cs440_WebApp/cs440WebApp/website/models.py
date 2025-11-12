@@ -74,15 +74,3 @@ class Booking(models.Model):
     cancel_message = models.TextField(blank=True)
     canceled_at = models.DateTimeField(null=True, blank=True)
 
-
-class ActivityLog(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    text = models.CharField(max_length=300)
-
-
-    class Meta:
-        ordering = ["-created_at"]
-
-
-    def __str__(self):
-        return self.text
