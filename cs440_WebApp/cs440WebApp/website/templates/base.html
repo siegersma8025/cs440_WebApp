@@ -20,11 +20,15 @@
          <!-- Used for displaying messages (login failed, successfully logged in, etc)-->
         {% if messages %}
           {% for message in messages %}
-           <!-- Display in bootstrap formatted message box-->
-        <div class="alert alert-success">
-            {{ message }}
-            <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+            <div class="alert 
+                {% if message.tags == 'success' %}alert-success
+                {% elif message.tags == 'error' %}alert-danger
+                {% elif message.tags == 'warning' %}alert-warning
+                {% else %}alert-info{% endif %}
+                alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             
           {% endfor %}
 

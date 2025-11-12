@@ -251,22 +251,33 @@ def adminDashboard(request):
 @user_required
 @csrf_protect
 def bookAppointment(request, slot_id):
-    # Use get_object_or_404 for better error handling
     slot = get_object_or_404(AppointmentSlot, id=slot_id, is_booked=False)
-    
+
     if request.method == "POST":
+        # Check for conflicting appointments for this user
+        user_bookings = Booking.objects.filter(user=request.user, slot__date=slot.date)
+        for booking in user_bookings:
+            booked_slot = booking.slot
+            # If times overlap, block booking
+            if (slot.start_time < booked_slot.end_time and slot.end_time > booked_slot.start_time):
+                messages.error(
+                    request,
+                    f"Conflicting appointment: You already have '{booked_slot.appointmentName}' from "
+                    f"{convertFromMilitaryTime(booked_slot.start_time)} to {convertFromMilitaryTime(booked_slot.end_time)} on {booked_slot.date.strftime('%m/%d/%Y')}."
+                )
+                return redirect('userDashboard')  # Only error message, no success
+
         # Double-check that slot is still available (race condition protection)
         if slot.is_booked:
             messages.error(request, "Sorry, this appointment has already been booked.")
             return redirect('userDashboard')
-            
+
         slot.is_booked = True
         slot.save()
         Booking.objects.create(slot=slot, user=request.user)
         messages.success(request, "Appointment booked successfully!")
         return redirect('userDashboard')
     else:
-        # Only allow POST requests for booking
         messages.error(request, "Invalid request method.")
         return redirect('userDashboard')
     
