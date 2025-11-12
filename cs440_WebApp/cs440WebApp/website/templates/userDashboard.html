@@ -14,8 +14,14 @@
     <h2>Booked Appointments</h2>
     <ul class="slots-list">
         {% for booking in bookings %}
-            <li class="slot-item">
-                <strong>{{ booking.slot.appointmentName }}</strong> with <strong>{{booking.slot.appointmentType}}</strong> provider: <strong>{{ booking.slot.providerFirstName }} {{ booking.slot.providerLastName }}</strong> on <strong>{{ booking.slot.date }}</strong>, {{ booking.slot.start_time }} - {{ booking.slot.end_time }}
+            <li class="slot-item d-flex justify-content-between align-items-center" style="padding:10px 14px;">
+                <div>
+                    <strong>{{ booking.slot.appointmentName }}</strong> with <strong>{{booking.slot.appointmentType}}</strong> provider: <strong>{{ booking.slot.providerFirstName }} {{ booking.slot.providerLastName }}</strong> on <strong>{{ booking.slot.date }}</strong>, {{ booking.slot.start_time }} - {{ booking.slot.end_time }}
+                </div>
+                <form method="POST" action="{% url 'cancelAppointment' booking.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                </form>
             </li>
         {% empty %}
             <li class="no-slots">You have no booked appointments.</li>
@@ -24,7 +30,6 @@
 </div>
 
 <hr class="section-divider">
-
 
 <div class="dashboard-header">
     <h2>Available Appointments</h2>
