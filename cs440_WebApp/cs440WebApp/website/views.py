@@ -1,9 +1,9 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
-from django.utils import timezone
 # Import forms models, and helper utilities
 from .forms import *
 from .models import *
@@ -142,7 +142,7 @@ def registerProvider(request):
     if request.method == "POST":
         form = ProviderSignUpForm(request.POST)
         if form.is_valid():
-            provider = form.save()  # This creates both User and ServiceProvider
+            form.save()  # This creates both User and ServiceProvider
             messages.success(request, "Registration Successful! You can now log in.")
             return redirect('home')
         else:
@@ -159,6 +159,7 @@ def providerDashboard(request):
     provider = request.user.serviceprovider  # Direct access since decorator ensures it exists
     slots = AppointmentSlot.objects.filter(providerUsername=request.user.username)
     slot_form = AppointmentSlotForm()
+    canceled_msgs = provider.get_and_clear_canceled_msgs()
 
     if request.method == "POST":
         slot_form = AppointmentSlotForm(request.POST)
@@ -168,8 +169,8 @@ def providerDashboard(request):
                     appointmentName=slot_form.cleaned_data['appointmentName'],
                     appointmentType = provider.category,
                     providerUsername=request.user.username,
-                    providerFirstName=request.user.first_name,
-                    providerLastName=request.user.last_name,
+                    providerFirstName=provider.first_name,
+                    providerLastName=provider.last_name,
                     date=slot_form.cleaned_data['date'],
                     start_time=slot_form.cleaned_data['start_time'],
                     end_time=slot_form.cleaned_data['end_time']
@@ -182,14 +183,16 @@ def providerDashboard(request):
     return render(request, 'providerDashboard.html', {
         'slots': slots,
         'slot_form': slot_form,
-        'provider': provider
+        'provider': provider,
+        'canceled_msgs': canceled_msgs,
     })
 
 @never_cache
-@user_required
 def userDashboard(request):
     slots = AppointmentSlot.objects.filter(is_booked=False)
     bookings = Booking.objects.filter(user=request.user)
+    user_profile = request.user.userprofile
+    canceled_msgs = user_profile.get_and_clear_canceled_msgs()
 
     category_selected = None
     date_selected = None
@@ -215,6 +218,7 @@ def userDashboard(request):
         'form': form,
         'slots': slots,
         'bookings': bookings,
+        'canceled_msgs': canceled_msgs,
     })
     
 @never_cache
@@ -267,23 +271,47 @@ def bookAppointment(request, slot_id):
         return redirect('userDashboard')
     
 
-@user_required
+def append_cancel_message(profile, message):
+    if profile:
+        import json
+        msgs = json.loads(profile.canceled_msgs)
+        msgs.append(message)
+        profile.canceled_msgs = json.dumps(msgs)
+        profile.save()
+
 @csrf_protect
-def cancelAppointment(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+def cancelAppointment(request, slot_id):
+    slot = get_object_or_404(AppointmentSlot, id=slot_id)
+    booking = Booking.objects.filter(slot=slot).first()
 
+    is_provider = hasattr(request.user, 'serviceprovider') and slot.providerUsername == request.user.username
+    is_user = booking and hasattr(request.user, 'userprofile') and booking.user == request.user
 
-    # Mark slot available again
-    booking.slot.is_booked = False
-    booking.slot.save()
+    if not (is_user or is_provider):
+        messages.error(request, "Access denied: This page is for registered users or providers only.")
+        return redirect('home')
 
+    start_time_str = convertFromMilitaryTime(slot.start_time)
+    end_time_str = convertFromMilitaryTime(slot.end_time)
+    date_str = slot.date.strftime('%m/%d/%Y')  # Month/Day/Year format
 
-    # Save optional cancel message
-    message = request.POST.get("message", "")
-    booking.cancel_message = message
-    booking.canceled_at = timezone.now()
-    booking.save()
-
-
-    messages.success(request, "Appointment canceled.")
-    return redirect("userDashboard")
+    if is_user:
+        # User cancels: add message for provider, remove booking
+        provider_profile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
+        msg = f"{booking.user.get_full_name()} canceled '{slot.appointmentName}' with you on {date_str} at {start_time_str}-{end_time_str}."
+        append_cancel_message(provider_profile, msg)
+        booking.delete()
+        slot.is_booked = False
+        slot.save()
+        messages.success(request, "Appointment canceled.")
+        return redirect("userDashboard")
+    elif is_provider:
+        # Provider cancels: add message for user if booked, remove booking if exists, always remove slot
+        if booking:
+            user_profile = booking.user.userprofile
+            msg = f"Your appointment '{slot.appointmentName}' with {slot.providerFirstName} {slot.providerLastName} on {date_str} at {start_time_str}-{end_time_str} was canceled by {slot.providerFirstName}."
+            append_cancel_message(user_profile, msg)
+            booking.delete()
+        slot.delete()
+        messages.success(request, "Appointment slot canceled and removed.")
+        return redirect("providerDashboard")

@@ -108,3 +108,12 @@
     background: linear-gradient(90deg, transparent, #6f42c1, transparent);
     margin: 30px 0;
 }
+
+.cancel-alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
