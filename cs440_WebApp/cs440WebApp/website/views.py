@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
+from django.utils import timezone
 # Import forms models, and helper utilities
 from .forms import *
 from .models import *
@@ -264,3 +265,25 @@ def bookAppointment(request, slot_id):
         # Only allow POST requests for booking
         messages.error(request, "Invalid request method.")
         return redirect('userDashboard')
+    
+
+@user_required
+@csrf_protect
+def cancelAppointment(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+
+
+    # Mark slot available again
+    booking.slot.is_booked = False
+    booking.slot.save()
+
+
+    # Save optional cancel message
+    message = request.POST.get("message", "")
+    booking.cancel_message = message
+    booking.canceled_at = timezone.now()
+    booking.save()
+
+
+    messages.success(request, "Appointment canceled.")
+    return redirect("userDashboard")
