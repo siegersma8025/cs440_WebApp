@@ -7,6 +7,17 @@
 
 {% block content %}
 
+{% if canceled_msgs %}
+<div class="alert alert-warning" role="alert" style="margin-top: 20px;">
+    <strong>Cancelation Notices:</strong>
+    <ul style="margin-bottom: 0;">
+        {% for msg in canceled_msgs %}
+            <li>{{ msg }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 <h2>Hello {{ request.user.first_name }}!</h2>
 </br>
 
@@ -18,7 +29,7 @@
                 <div>
                     <strong>{{ booking.slot.appointmentName }}</strong> with <strong>{{booking.slot.appointmentType}}</strong> provider: <strong>{{ booking.slot.providerFirstName }} {{ booking.slot.providerLastName }}</strong> on <strong>{{ booking.slot.date }}</strong>, {{ booking.slot.start_time }} - {{ booking.slot.end_time }}
                 </div>
-                <form method="POST" action="{% url 'cancelAppointment' booking.id %}">
+                <form method="POST" action="{% url 'cancelAppointment' booking.slot.id %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                 </form>

@@ -1,5 +1,7 @@
+import json
 from django.db import models
 from django.contrib.auth.models import User
+
 
 # Service provider object/model that will be used to push to database
 class ServiceProvider(models.Model):
@@ -9,28 +11,32 @@ class ServiceProvider(models.Model):
     qualifications = models.TextField(max_length=200, default="Qualifications")
     first_name = models.CharField(max_length=50, default="Provider")
     last_name = models.CharField(max_length=50, default="Name")
+    canceled_msgs = models.TextField(default="[]", blank=True)  # Store as JSON list
 
-    # String representation of a "ServiceProvider" object
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.get_category_display()})"
+    def get_and_clear_canceled_msgs(self):
+        msgs = json.loads(self.canceled_msgs)
+        self.canceled_msgs = "[]"
+        self.save()
+        return msgs
     
 # User object/model that will be used to push to database
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
+    canceled_msgs = models.TextField(default="[]", blank=True)  # Store as JSON list
 
-    # String representation of a "User" object
-    def __str__(self):
-        return f"UserProfile: {self.user.username}"
+    def get_and_clear_canceled_msgs(self):
+        msgs = json.loads(self.canceled_msgs)
+        self.canceled_msgs = "[]"
+        self.save()
+        return msgs
+
     
 # Admin object/model that will be used to push to database
 class AdminProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    # String representation of an "Admin" object
-    def __str__(self):
-        return f"AdminProfile: {self.user.username}"
     
 # AppointmentSlot: available slots created by service providers
 class AppointmentSlot(models.Model):
@@ -57,9 +63,6 @@ class AppointmentSlot(models.Model):
             raise Exception("This time slot already exists!")
         
         super().save(*args, **kwargs)
-    # String representation of an "AppointmentSlot" object
-    def __str__(self):
-        return f"{self.appointmentName}: {self.date} {self.start_time}-{self.end_time}"
 
 # Booking: booked slots by users
 class Booking(models.Model):
@@ -70,9 +73,6 @@ class Booking(models.Model):
 
     cancel_message = models.TextField(blank=True)
     canceled_at = models.DateTimeField(null=True, blank=True)
-    # String representation of a "Booking" object
-    def __str__(self):
-            return f"{self.user.username} booked {self.slot}"
 
 
 class ActivityLog(models.Model):

@@ -1,10 +1,9 @@
 # File containing helper functions in filtering table views
+def convertFromMilitaryTime(timeStamp):
+    return timeStamp.strftime('%I:%M %p').lstrip('0').replace(' 0', ' ')
 
 def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''):
     filtered = []
-    
-    def convertFromMilitaryTime(timeStamp):
-        return timeStamp.strftime('%I:%M %p').lstrip('0').replace(' 0', ' ')
     
     # Grab string from search box and convert to lowercase for case-insensitive comparison
     search = search.strip().lower()
