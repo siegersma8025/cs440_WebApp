@@ -8,48 +8,111 @@
 <h2>Hello Admin!</h2>
 <br>
 
-<form method="get" class="search-filters" id="filterForm">
-    <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="searchInput">
-    <select name="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="typeFilter">
-        <option value="">All Types</option>
-        {% for t in types %}
-        <option value="{{ t }}" {% if t == typeFilter %}selected{% endif %}>{{ t }}</option>
-        {% endfor %}
-    </select>
-    <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="dateFilter">
-    <button type="submit" style="padding: 8px 16px; border: none; background: #a30404; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
-    <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #a30404; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
-</form>
-
-<div class="appointments-table">
-    <table id="adminTable" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Appointment Name</th>
-                <th>Appointment Type</th>
-                <th>User</th>
-                <th>Provider</th>
-                <th>Date</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>{{ item.appointment_name }}</td>
-                <td>{{ item.appointment_type }}</td>
-                <td>{{ item.user_name }}</td>
-                <td>{{ item.provider_name }}</td>
-                <td>{{ item.date }}</td>
-                <td>{{ item.time }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="no-appointments">No appointments found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Toggle Buttons -->
+<div style="margin-bottom: 20px;">
+    <a href="?view=appointments" class="btn {% if view_mode == 'appointments' %}btn-primary{% else %}btn-outline-primary{% endif %}">Appointments</a>
+    <a href="?view=users" class="btn {% if view_mode == 'users' %}btn-primary{% else %}btn-outline-primary{% endif %}">Users & Providers</a>
 </div>
+
+{% if view_mode == 'appointments' %}
+    <!-- Filter/search form -->
+    <form method="get" class="search-filters" id="filterForm">
+        <input type="hidden" name="view" value="appointments">
+        <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="searchInput">
+        <select name="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="typeFilter">
+            <option value="">All Types</option>
+            {% for t in types %}
+            <option value="{{ t }}" {% if t == typeFilter %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="dateFilter">
+        <button type="submit" style="padding: 8px 16px; border: none; background: #a30404; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
+        <button type="button" onclick="window.location.href='{{ request.path }}?view=appointments'" style="padding: 8px 16px; border: none; background: #a30404; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
+    </form>
+    <!-- Appointments table (as before) -->
+    <div class="appointments-table">
+        <table id="adminTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Appointment Name</th>
+                    <th>Appointment Type</th>
+                    <th>User</th>
+                    <th>Provider</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Cancel</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.appointment_name }}</td>
+                    <td>{{ item.appointment_type }}</td>
+                    <td>{{ item.user_name }}</td>
+                    <td>{{ item.provider_name }}</td>
+                    <td>{{ item.date }}</td>
+                    <td>{{ item.time }}</td>
+                    <td>
+                        <form method="POST" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="slot_id" value="{{ item.slot_id }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-appointments">No appointments found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% elif view_mode == 'users' %}
+    <!-- Users & Providers Table (as before) -->
+    <div class="appointments-table">
+        <h4>Registered Users</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Type</th>
+                    <th>Remove</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in user_profiles %}
+                <tr>
+                    <td>{{ profile.user.username }}</td>
+                    <td>{{ profile.first_name }} {{ profile.last_name }}</td>
+                    <td>User</td>
+                    <td>
+                        <form method="POST" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="username" value="{{ profile.user.username }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for profile in provider_profiles %}
+                <tr>
+                    <td>{{ profile.user.username }}</td>
+                    <td>{{ profile.first_name }} {{ profile.last_name }}</td>
+                    <td>Provider</td>
+                    <td>
+                        <form method="POST" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="username" value="{{ profile.user.username }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
 
 {% endblock %}
