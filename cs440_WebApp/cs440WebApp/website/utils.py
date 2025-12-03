@@ -1,3 +1,6 @@
+from django.db import connection
+from .models import UserProfile, ServiceProvider
+
 # File containing helper functions in filtering table views
 def convertFromMilitaryTime(timeStamp):
     return timeStamp.strftime('%I:%M %p').lstrip('0').replace(' 0', ' ')
@@ -29,8 +32,9 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
         if dateFilter and slot.date.strftime('%Y-%m-%d') != dateFilter:
             continue
         
-        # Add relevant appointment details to the filtered list
+        # Add relevant appointment details to the filtered list, including slot_id
         filtered.append({
+            'slot_id': slot.id,
             'user_name': user_name,
             'provider_name': provider_name,
             'appointment_name': slot.appointmentName,
@@ -40,3 +44,28 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
         })
     # Return the filtered list of appointments
     return filtered
+
+# Based on username, delete user and associated profile/provider entries from the database
+def delete_user_and_profile(username):
+    """
+    Deletes a user and their associated profile/provider entries from the database.
+    - Looks up the user id from auth_user by username.
+    - Deletes from UserProfile or ServiceProvider by user id.
+    - Deletes from auth_user by username.
+    """
+    # Get user id from auth_user
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id FROM auth_user WHERE username = %s", [username])
+        row = cursor.fetchone()
+        if not row:
+            return False  # User not found
+        user_id = row[0]
+
+    # Delete from UserProfile if exists
+    UserProfile.objects.filter(user_id=user_id).delete()
+    # Delete from ServiceProvider if exists
+    ServiceProvider.objects.filter(user_id=user_id).delete()
+    # Delete from auth_user using raw SQL to avoid Django's cascades
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM auth_user WHERE username = %s", [username])
+    return True
