@@ -119,7 +119,9 @@ class ProviderSignUpForm(forms.Form):
     def save(self):
         user = User.objects.create_user(
             username=self.cleaned_data['username'],
-            password=self.cleaned_data['password1']
+            password=self.cleaned_data['password1'],
+            first_name=self.cleaned_data['first_name'],
+            last_name=self.cleaned_data['last_name']
         )
         provider = ServiceProvider.objects.create(
             user=user,
