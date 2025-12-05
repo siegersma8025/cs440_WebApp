@@ -50,17 +50,32 @@ class AppointmentSlot(models.Model):
     end_time = models.TimeField()
     is_booked = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        # Check if duplicate exists
-        duplicate = AppointmentSlot.objects.filter(
-            providerUsername=self.providerUsername,
-            date=self.date,
-            start_time=self.start_time,
-            end_time=self.end_time
-        ).exclude(pk=self.pk).exists()
+    def is_past(self):
+        """Check if this appointment slot is in the past"""
+        from datetime import datetime, time
+        now = datetime.now()
         
-        if duplicate:
-            raise Exception("This time slot already exists!")
+        # If appointment date is before today, it's past
+        if self.date < now.date():
+            return True
+        
+        # If appointment date is today, check if end time has passed
+        if self.date == now.date() and self.end_time < now.time():
+            return True
+        
+        return False
+
+    def save(self, *args, **kwargs):
+        # Check if any overlapping appointment exists for this provider on this date
+        overlapping = AppointmentSlot.objects.filter(
+            providerUsername=self.providerUsername,
+            date=self.date
+        ).exclude(pk=self.pk)
+        
+        # Check for time overlap: two time slots overlap if one starts before the other ends
+        for existing_slot in overlapping:
+            if (self.start_time < existing_slot.end_time and self.end_time > existing_slot.start_time):
+                raise Exception(f"Time conflict: You already have an appointment from {existing_slot.start_time.strftime('%H:%M')} to {existing_slot.end_time.strftime('%H:%M')} on this date.")
         
         super().save(*args, **kwargs)
 
