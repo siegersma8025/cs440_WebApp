@@ -236,31 +236,79 @@ def userDashboard(request):
         'canceled_msgs': canceled_msgs,
     })
     
+
 @never_cache
-@admin_required
+@csrf_protect
 def adminDashboard(request):
-    # Get populated filter parameters from GET request
-    search = request.GET.get('searchInput', '').lower()
-    typeFilter = request.GET.get('typeFilter', '')
-    dateFilter = request.GET.get('dateFilter', '')
+    # Only allow access for superusers or staff
+    if not request.user.is_authenticated or not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, "Access denied: This page is for administrators only.")
+        return redirect('home')
 
-    # Get appointment slots and filter them
-    slots = AppointmentSlot.objects.all()
-    items = filterAppointments(slots, search, typeFilter, dateFilter)
-    types = set()
-    for slot in slots:
-        type = slot.appointmentType.strip()
-        types.add(type)
-    types = sorted(types)
+    view_mode = request.GET.get('view', 'appointments')
 
-    # Render the admin dashboard with filtered items and available types
-    return render(request, 'adminDashboard.html', {
-        'items': items,
-        'types': types,
-        'searchInput': request.GET.get('searchInput', ''),
-        'typeFilter': request.GET.get('typeFilter', ''),
-        'dateFilter': request.GET.get('dateFilter', ''),
-    })
+    if request.method == "POST":
+        # Handle appointment cancellation
+        if view_mode == 'appointments':
+            slot_id = request.POST.get("slot_id")
+            slot = get_object_or_404(AppointmentSlot, id=slot_id)
+            booking = Booking.objects.filter(slot=slot).first()
+            start_time_str = convertFromMilitaryTime(slot.start_time)
+            end_time_str = convertFromMilitaryTime(slot.end_time)
+            date_str = slot.date.strftime('%m/%d/%Y')
+            if booking:
+                user_profile = getattr(booking.user, 'userprofile', None)
+                if user_profile:
+                    msg_user = (
+                        f"Your appointment '{slot.appointmentName}' with {slot.providerFirstName} {slot.providerLastName} "
+                        f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
+                    )
+                    append_cancel_message(user_profile, msg_user)
+                provider_profile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
+                if provider_profile:
+                    msg_provider = (
+                        f"An administrator canceled '{slot.appointmentName}' with {booking.user.get_full_name()} "
+                        f"on {date_str} at {start_time_str}-{end_time_str}."
+                    )
+                    append_cancel_message(provider_profile, msg_provider)
+                booking.delete()
+            slot.delete()
+            messages.success(request, "Appointment canceled and removed.")
+            return redirect(f'{request.path}?view=appointments')
+        # Handle user/provider removal
+        elif view_mode == 'users':
+            username = request.POST.get("username")
+            if delete_user_and_profile(username):
+                messages.success(request, "User/Provider account deleted.")
+            else:
+                messages.error(request, "User not found.")
+            return redirect(f'{request.path}?view=users')
+
+    # Appointments table
+    if view_mode == 'appointments':
+        search = request.GET.get('searchInput', '').lower()
+        typeFilter = request.GET.get('typeFilter', '')
+        dateFilter = request.GET.get('dateFilter', '')
+        slots = AppointmentSlot.objects.all()
+        items = filterAppointments(slots, search, typeFilter, dateFilter)
+        types = sorted(set(slot.appointmentType.strip() for slot in slots))
+        return render(request, 'adminDashboard.html', {
+            'view_mode': 'appointments',
+            'items': items,
+            'types': types,
+            'searchInput': search,
+            'typeFilter': typeFilter,
+            'dateFilter': dateFilter,
+        })
+    # Users table
+    else:
+        user_profiles = UserProfile.objects.select_related('user')
+        provider_profiles = ServiceProvider.objects.select_related('user')
+        return render(request, 'adminDashboard.html', {
+            'view_mode': 'users',
+            'user_profiles': user_profiles,
+            'provider_profiles': provider_profiles,
+        })
 
 
 @user_required

@@ -86,6 +86,3 @@ class Booking(models.Model):
     booked_at = models.DateTimeField(auto_now_add=True)
 
 
-    cancel_message = models.TextField(blank=True)
-    canceled_at = models.DateTimeField(null=True, blank=True)
-
