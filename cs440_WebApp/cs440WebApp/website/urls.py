@@ -11,4 +11,7 @@ urlpatterns = [
     path('dashboard/admin/', views.adminDashboard, name='adminDashboard'),
     path('book/<int:slot_id>/', views.bookAppointment, name='bookAppointment'),
     path('cancel/<int:slot_id>/', views.cancelAppointment, name='cancelAppointment'),
+    path('dashboard/admin/downloadUserReport/', views.downloadUserReport, name='downloadUserReport'),
+    path('dashboard/admin/downloadAllUsersReport/', views.downloadAllUsersReport, name='downloadAllUsersReport'),
+    path('dashboard/admin/downloadProviderReport/', views.downloadProviderReport, name='downloadProviderReport'),
 ]

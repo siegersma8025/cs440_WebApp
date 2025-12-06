@@ -269,32 +269,43 @@ def adminDashboard(request):
                 messages.error(request, "User not found.")
             return redirect(f'{request.path}?view=users')
 
-    # Appointments table
     if view_mode == 'appointments':
-        search = request.GET.get('searchInput', '').lower()
+        search = request.GET.get('searchInput', '')
         typeFilter = request.GET.get('typeFilter', '')
         dateFilter = request.GET.get('dateFilter', '')
         slots = AppointmentSlot.objects.all()
         items = filterAppointments(slots, search, typeFilter, dateFilter)
         types = sorted(set(slot.appointmentType.strip() for slot in slots))
-        return render(request, 'adminDashboard.html', {
+        context = {
             'view_mode': 'appointments',
             'items': items,
             'types': types,
             'searchInput': search,
             'typeFilter': typeFilter,
             'dateFilter': dateFilter,
-        })
-    # Users table
+        }
+        return render(request, 'adminDashboard.html', context)
     else:
-        user_profiles = UserProfile.objects.select_related('user')
-        provider_profiles = ServiceProvider.objects.select_related('user')
-        return render(request, 'adminDashboard.html', {
+        userSearchInput = request.GET.get('userSearchInput', '')
+        userTypeFilter = request.GET.get('userTypeFilter', '')
+        user_profiles = UserProfile.objects.select_related('user').all()
+        provider_profiles = ServiceProvider.objects.select_related('user').all()
+        user_profiles, provider_profiles = filterUsers(
+            user_profiles, provider_profiles,
+            search=userSearchInput,
+            typeFilter=userTypeFilter
+        )
+        slots = AppointmentSlot.objects.all()
+        types = sorted(set(slot.appointmentType.strip() for slot in slots))
+        context = {
             'view_mode': 'users',
             'user_profiles': user_profiles,
             'provider_profiles': provider_profiles,
-        })
-
+            'userSearchInput': userSearchInput,
+            'userTypeFilter': userTypeFilter,
+            'types': types,
+        }
+        return render(request, 'adminDashboard.html', context)
 
 @user_required
 @csrf_protect
@@ -374,3 +385,43 @@ def cancelAppointment(request, slot_id):
         slot.delete()
         messages.success(request, "Appointment slot canceled and removed.")
         return redirect("providerDashboard")
+    
+@never_cache
+@csrf_protect
+def downloadUserReport(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
+        appointment_type = request.POST.get("appointment_type") or None
+        response = generateUserAppointmentsCsv(username, start_date, end_date, appointment_type)
+        if response:
+            return response
+        messages.error(request, "User not found or no data.")
+        return redirect('adminDashboard')
+    return redirect('adminDashboard')
+
+@never_cache
+@csrf_protect
+def downloadAllUsersReport(request):
+    if request.method == "POST":
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
+        appointment_type = request.POST.get("appointment_type") or None
+        response = generateAllUsersReport(start_date, end_date, appointment_type)
+        return response
+    return redirect('adminDashboard')
+
+@never_cache
+@csrf_protect
+def downloadProviderReport(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
+        response = generateProviderAppointmentsCsv(username, start_date, end_date)
+        if response:
+            return response
+        messages.error(request, "Provider not found or no data.")
+        return redirect('adminDashboard')
+    return redirect('adminDashboard')
