@@ -55,6 +55,9 @@ def admin_required(view_func):
         return redirect_response or view_func(request, *args, **kwargs)
     return wrapper
 
+#help page
+def help_page(request):
+    return render(request, "help.html")   
 # Each view is essentially a function that takes in a request and returns a response
 # The response is usually a rendered HTML template
 # The request can be a GET or POST request
@@ -327,8 +330,7 @@ def bookAppointment(request, slot_id):
         return redirect('userDashboard')
     else:
         messages.error(request, "Invalid request method.")
-        return redirect('userDashboard')
-    
+        return redirect('userDashboard') 
 
 def append_cancel_message(profile, message):
     if profile:

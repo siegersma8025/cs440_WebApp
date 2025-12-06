@@ -1,5 +1,6 @@
 from django.urls import path
 from website import views
+from . import views
 
 urlpatterns = [
     path('', views.home, name = 'home'),
@@ -11,4 +12,5 @@ urlpatterns = [
     path('dashboard/admin/', views.adminDashboard, name='adminDashboard'),
     path('book/<int:slot_id>/', views.bookAppointment, name='bookAppointment'),
     path('cancel/<int:slot_id>/', views.cancelAppointment, name='cancelAppointment'),
+    path("help/", views.help_page, name="help"),
 ]
