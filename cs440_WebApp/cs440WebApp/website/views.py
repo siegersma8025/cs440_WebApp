@@ -217,7 +217,7 @@ def userDashboard(request):
     dateFilter = request.GET.get('dateFilter', '')
 
     # Get all appointment slots
-    slots_queryset = AppointmentSlot.objects.all()
+    slots_queryset = AppointmentSlot.objects.filter(is_booked=False)
 
     # Use your existing filterAppointments function
     slots = filterAppointments(slots_queryset, search, typeFilter, dateFilter)

@@ -90,7 +90,6 @@
                 <th>Date</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Status</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -100,15 +99,8 @@
                 <td>{{ slot.appointment_name }}</td>
                 <td>{{ slot.provider_name }}</td>
                 <td>{{ slot.date }}</td>
-                <td>{{ slot.time }}</td>
-                <td>{{ slot.time }}</td>
-                <td>
-                    {% if slot.is_booked %}
-                        <span class="status-booked">Booked</span>
-                    {% else %}
-                        <span class="status-available">Available</span>
-                    {% endif %}
-                </td>
+                <td>{{ slot.start_time }}</td>
+                <td>{{ slot.end_time }}</td>
                 <td>
                     {% if not slot.is_booked %}
                     <form method="POST" action="{% url 'bookAppointment' slot.slot_id %}">

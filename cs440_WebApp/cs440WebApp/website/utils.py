@@ -57,6 +57,8 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
             'appointment_type': slot.appointmentType,
             'date': formattedDate,
             'time': f"{convertFromMilitaryTime(slot.start_time)} - {convertFromMilitaryTime(slot.end_time)}",
+            'start_time': slot.start_time,
+            'end_time': slot.end_time,
         })
     # Return the filtered list of appointments
     return filtered
