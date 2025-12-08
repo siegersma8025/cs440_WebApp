@@ -45,7 +45,7 @@
                     <td>{{ booking.slot.start_time }}</td>
                     <td>{{ booking.slot.end_time }}</td>
                     <td>
-                        <form method="POST" action="{% url 'cancelAppointment' booking.id %}">
+                        <form method="POST" action="{% url 'cancelAppointment' booking.slot.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                         </form>
