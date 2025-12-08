@@ -156,8 +156,13 @@ def registerProvider(request):
 @never_cache
 @provider_required
 def providerDashboard(request):
+    from .utils import filter_non_past_appointments
     provider = request.user.serviceprovider  # Direct access since decorator ensures it exists
-    slots = AppointmentSlot.objects.filter(providerUsername=request.user.username)
+    
+    # Filter out past appointments for providers
+    all_slots = AppointmentSlot.objects.filter(providerUsername=request.user.username)
+    slots = filter_non_past_appointments(all_slots)
+    
     slot_form = AppointmentSlotForm()
     canceled_msgs = provider.get_and_clear_canceled_msgs()
 
@@ -189,8 +194,16 @@ def providerDashboard(request):
 
 @never_cache
 def userDashboard(request):
-    slots = AppointmentSlot.objects.filter(is_booked=False)
-    bookings = Booking.objects.filter(user=request.user)
+    from .utils import filter_non_past_appointments, filter_non_past_bookings
+    
+    # Filter out past appointments for users - only show future available slots
+    all_slots = AppointmentSlot.objects.filter(is_booked=False)
+    slots = filter_non_past_appointments(all_slots)
+    
+    # Filter out past bookings for users
+    all_bookings = Booking.objects.filter(user=request.user)
+    bookings = filter_non_past_bookings(all_bookings)
+    
     user_profile = request.user.userprofile
     canceled_msgs = user_profile.get_and_clear_canceled_msgs()
 
@@ -206,9 +219,11 @@ def userDashboard(request):
             if category_selected:
                 # Get usernames of providers in this category
                 provider_usernames = ServiceProvider.objects.filter(category=category_selected).values_list('user__username', flat=True)
-                slots = slots.filter(provider_username__in=provider_usernames)
+                # Filter by category from the list of non-past slots
+                slots = [slot for slot in slots if slot.providerUsername in provider_usernames]
             if date_selected:
-                slots = slots.filter(date=date_selected)
+                # Filter by date from the list of non-past slots
+                slots = [slot for slot in slots if slot.date == date_selected]
     else:
         form = AppointmentSearchForm()
 
