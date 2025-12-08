@@ -27,27 +27,50 @@
 
 <div class="slots-section">
     <h2>Your Appointments</h2>
-    <ul class="slots-list">
-        {% for slot in slots %}
-            <li class="slot-item d-flex justify-content-between align-items-center" style="padding:10px 14px;">
-                <div>
-                    <strong>{{ slot.appointmentName }}</strong> on <strong>{{ slot.date }}</strong> at <strong>{{ slot.start_time }} - {{ slot.end_time }}</strong>
-                    {% if slot.is_booked %}
-                        <span class="slot-status-booked">Booked</span>
-                    {% else %}
-                        <span class="slot-status-available">Available</span>
-                    {% endif %}
-                </div>
-                <form method="POST" action="{% url 'cancelAppointment' slot.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
-                </form>
-            </li>
-        {% empty %}
-            <li class="no-slots">You have not added any slots yet.</li>
-        {% endfor %}
-    </ul>
+
+    <div class="appointments-table">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Appointment Name</th>
+                    <th>Date</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Status</th>
+                    <th style="width:1%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td>{{ slot.appointmentName }}</td>
+                    <td>{{ slot.date }}</td>
+                    <td>{{ slot.start_time }}</td>
+                    <td>{{ slot.end_time }}</td>
+                    <td>
+                        {% if slot.is_booked %}
+                            <span class="slot-status-booked">Booked</span>
+                        {% else %}
+                            <span class="slot-status-available">Available</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'cancelAppointment' slot.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="no-appointments">You have not added any slots yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
 
 <hr class="section-divider">
 
