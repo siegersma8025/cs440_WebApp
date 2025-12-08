@@ -86,6 +86,7 @@
         <thead>
             <tr>
                 <th>Appointment Name</th>
+                <th>Appointment Type</th>
                 <th>Provider Username</th>
                 <th>Date</th>
                 <th>Start Time</th>
@@ -97,6 +98,7 @@
             {% for slot in slots %}
             <tr>
                 <td>{{ slot.appointment_name }}</td>
+                <td>{{ slot.appointment_type }}</td>
                 <td>{{ slot.provider_name }}</td>
                 <td>{{ slot.date }}</td>
                 <td>{{ slot.start_time }}</td>

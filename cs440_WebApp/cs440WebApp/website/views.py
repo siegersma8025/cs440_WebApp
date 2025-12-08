@@ -155,7 +155,6 @@ def registerProvider(request):
     return render(request, 'registerProvider.html', {'form': form})
 
 
-
 @never_cache
 @provider_required
 def providerDashboard(request):
@@ -169,8 +168,18 @@ def providerDashboard(request):
     if request.method == "POST":
         slot_form = AppointmentSlotForm(request.POST)
         if slot_form.is_valid():
-            new_slot = slot_form.save(commit=False)
-            new_slot.providerUsername = request.user.username
+            cd = slot_form.cleaned_data
+            new_slot = AppointmentSlot(
+                providerUsername=request.user.username,
+                providerFirstName=provider_profile.first_name,
+                providerLastName=provider_profile.last_name,
+                appointmentName=cd.get('appointmentName'),
+                appointmentType=provider_profile.category,  # Set from provider's category
+                date=cd.get('date'),
+                start_time=cd.get('start_time'),
+                end_time=cd.get('end_time'),
+                is_booked=False,
+            )
             new_slot.save()
             messages.success(request, "Appointment slot added successfully.")
             return redirect('providerDashboard')
@@ -198,6 +207,7 @@ def providerDashboard(request):
         'typeFilter': typeFilter,
         'dateFilter': dateFilter,
     })
+
 
 @never_cache
 def userDashboard(request):

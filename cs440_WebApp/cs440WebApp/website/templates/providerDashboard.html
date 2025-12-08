@@ -25,20 +25,15 @@
     </div>
 </div>
 
+<h2>Your Appointments</h2>
+
 <div class="slots-section">
     <form method="get" class="search-filters" id="filterForm">
         <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="searchInput">
-        <select name="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="typeFilter">
-            <option value="">All Types</option>
-            {% for t in types %}
-            <option value="{{ t }}" {% if t == typeFilter %}selected{% endif %}>{{ t }}</option>
-            {% endfor %}
-        </select>
         <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="dateFilter">
         <button type="submit" style="padding: 8px 16px; border: none; background: #a30404; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
         <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #a30404; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
     </form>
-    <h2>Your Appointments</h2>
     <div class="appointments-table">
         <table class="table table-striped mb-0">
             <thead>
@@ -47,7 +42,7 @@
                     <th>Date</th>
                     <th>Start Time</th>
                     <th>End Time</th>
-                    <th>Status</th>
+                    <th>Booked</th>
                     <th style="width:1%;">Action</th>
                 </tr>
             </thead>
@@ -56,13 +51,15 @@
                 <tr>
                     <td>{{ slot.appointment_name }}</td>
                     <td>{{ slot.date }}</td>
-                    <td>{{ slot.time }}</td>
-                    <td>{{ slot.time }}</td>
+                    <td>{{ slot.start_time }}</td>
+                    <td>{{ slot.end_time }}</td>
                     <td>
-                        {% if slot.is_booked %}
-                            <span class="slot-status-booked">Booked</span>
+                         {% if slot.user_name != "Unbooked" %}
+                            <span style="color: #6f42c1; font-weight: bold;">
+                                {{ slot.user_name }}
+                            </span>
                         {% else %}
-                            <span class="slot-status-available">Available</span>
+                            <span style="color: #28a745; font-weight: bold;">Available</span>
                         {% endif %}
                     </td>
                     <td>
@@ -81,7 +78,6 @@
         </table>
     </div>
 </div>
-
 
 <hr class="section-divider">
 
