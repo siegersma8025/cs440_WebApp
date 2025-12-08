@@ -159,71 +159,83 @@ def registerProvider(request):
 @never_cache
 @provider_required
 def providerDashboard(request):
-    provider = request.user.serviceprovider  # Direct access since decorator ensures it exists
-    slots = AppointmentSlot.objects.filter(providerUsername=request.user.username)
-    slot_form = AppointmentSlotForm()
-    canceled_msgs = provider.get_and_clear_canceled_msgs()
+    try:
+        provider_profile = ServiceProvider.objects.get(user=request.user)
+    except ServiceProvider.DoesNotExist:
+        messages.error(request, "Access denied: You are not registered as a provider.")
+        return redirect('home')
 
+    # Handle new slot form submission
     if request.method == "POST":
         slot_form = AppointmentSlotForm(request.POST)
         if slot_form.is_valid():
-            try:
-                AppointmentSlot.objects.create(
-                    appointmentName=slot_form.cleaned_data['appointmentName'],
-                    appointmentType = provider.category,
-                    providerUsername=request.user.username,
-                    providerFirstName=provider.first_name,
-                    providerLastName=provider.last_name,
-                    date=slot_form.cleaned_data['date'],
-                    start_time=slot_form.cleaned_data['start_time'],
-                    end_time=slot_form.cleaned_data['end_time']
-                )
-                messages.success(request, "Appointment slot added!")
-            except:
-                messages.error(request, "No duplicate time slots allowed!")
+            new_slot = slot_form.save(commit=False)
+            new_slot.providerUsername = request.user.username
+            new_slot.save()
+            messages.success(request, "Appointment slot added successfully.")
             return redirect('providerDashboard')
+    else:
+        slot_form = AppointmentSlotForm()
+
+    # Filtering parameters
+    search = request.GET.get('searchInput', '').strip().lower()
+    typeFilter = request.GET.get('typeFilter', '')
+    dateFilter = request.GET.get('dateFilter', '')
+
+    # Get all slots for this provider
+    slots_qs = AppointmentSlot.objects.filter(providerUsername=request.user.username)
+    filtered_slots = filterAppointments(slots_qs, search, typeFilter, dateFilter)
+
+    # Collect unique types for the filter dropdown
+    types = sorted(set(slot.appointmentType.strip() for slot in slots_qs))
 
     return render(request, 'providerDashboard.html', {
-        'slots': slots,
+        'provider': provider_profile,
+        'slots': filtered_slots,
         'slot_form': slot_form,
-        'provider': provider,
-        'canceled_msgs': canceled_msgs,
+        'types': types,
+        'searchInput': search,
+        'typeFilter': typeFilter,
+        'dateFilter': dateFilter,
     })
 
 @never_cache
 def userDashboard(request):
-    slots = AppointmentSlot.objects.filter(is_booked=False)
-    bookings = Booking.objects.filter(user=request.user)
-    user_profile = request.user.userprofile
-    canceled_msgs = user_profile.get_and_clear_canceled_msgs()
+    if not request.user.is_authenticated:
+        return redirect('login')
 
-    category_selected = None
-    date_selected = None
+    # Load cancellation messages
+    user_profile = getattr(request.user, 'userprofile', None)
+    canceled_msgs = user_profile.get_and_clear_canceled_msgs() if user_profile else []
 
-    if request.method == "POST":
-        form = AppointmentSearchForm(request.POST)
-        if form.is_valid():
-            category_selected = form.cleaned_data['category']
-            date_selected = form.cleaned_data['date']
+    # Booked appointments for the user
+    bookings = Booking.objects.filter(user=request.user).select_related("slot")
 
-            if category_selected:
-                # Get usernames of providers in this category
-                provider_usernames = ServiceProvider.objects.filter(category=category_selected).values_list('user__username', flat=True)
-                slots = slots.filter(provider_username__in=provider_usernames)
-            if date_selected:
-                slots = slots.filter(date=date_selected)
-    else:
-        form = AppointmentSearchForm()
+    # --- Handle filters ---
+    search = request.GET.get('searchInput', '').strip().lower()
+    typeFilter = request.GET.get('typeFilter', '')
+    dateFilter = request.GET.get('dateFilter', '')
 
-    form = AppointmentSearchForm(request.POST or None)
+    # Get all appointment slots
+    slots_queryset = AppointmentSlot.objects.all()
 
+    # Use your existing filterAppointments function
+    slots = filterAppointments(slots_queryset, search, typeFilter, dateFilter)
+
+    # Get all types for dropdown
+    types = sorted(set(slot.appointmentType.strip() for slot in slots_queryset))
+
+    # Render template
     return render(request, 'userDashboard.html', {
-        'form': form,
-        'slots': slots,
-        'bookings': bookings,
         'canceled_msgs': canceled_msgs,
+        'bookings': bookings,
+        'slots': slots,
+        'types': types,
+        'searchInput': search,
+        'typeFilter': typeFilter,
+        'dateFilter': dateFilter,
     })
-    
+
 
 @never_cache
 @csrf_protect

@@ -17,8 +17,11 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    max-height: 320px;
+    overflow-y: auto;
 }
+
+
 
 .table-striped > tbody > tr:nth-of-type(odd) > td {
     background-color: rgba(0, 0, 0, 0.02);
