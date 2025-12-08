@@ -5,6 +5,20 @@ from .models import UserProfile, ServiceProvider
 def convertFromMilitaryTime(timeStamp):
     return timeStamp.strftime('%I:%M %p').lstrip('0').replace(' 0', ' ')
 
+def filter_non_past_appointments(queryset):
+    """
+    Filter out past appointments from a queryset or list.
+    Returns a list of appointments that are not in the past.
+    """
+    return [item for item in queryset if not item.is_past()]
+
+def filter_non_past_bookings(bookings):
+    """
+    Filter out past bookings from a queryset or list.
+    Returns a list of bookings whose appointment slots are not in the past.
+    """
+    return [booking for booking in bookings if not booking.slot.is_past()]
+
 def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''):
     filtered = []
     
