@@ -18,21 +18,23 @@
 </div>
 {% endif %}
 
-<div class="provider-header">
+<div class="provider-header-name">
     <h2>Hello {{ provider.first_name }}!</h2>
+</div>
+
+<div class="provider-header">
+    <h2>Your Appointments</h2>
     <div class="provider-qualifications">
         <p><strong>Qualifications:</strong> {{ provider.qualifications }}</p>
     </div>
 </div>
 
-<h2>Your Appointments</h2>
-
 <div class="slots-section">
     <form method="get" class="search-filters" id="filterForm">
-        <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="searchInput">
-        <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="dateFilter">
-        <button type="submit" style="padding: 8px 16px; border: none; background: #a30404; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
-        <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #a30404; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
+        <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #5a32a3; border-radius: 6px;" id="searchInput">
+        <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #5a32a3; border-radius: 6px;" id="dateFilter">
+        <button type="submit" style="padding: 8px 16px; border: none; background: #5a32a3; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
+        <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #5a32a3; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
     </form>
     <div class="appointments-table">
         <table class="table table-striped mb-0">
@@ -82,7 +84,9 @@
 <hr class="section-divider">
 
 <div class="add-slot-section">
-    <h3>Add Appointment Slot</h3>
+   <div class="provider-header">
+        <h2>Add Appointments</h2>
+    </div>
     
     {% if slot_form.errors %}
         <div class="alert alert-danger" role="alert">

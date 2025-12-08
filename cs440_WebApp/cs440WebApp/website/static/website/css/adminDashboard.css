@@ -1,4 +1,15 @@
-/* ...existing code... */
+.admin-header {
+    background: linear-gradient(135deg, rgba(163, 4, 4, 0.78), rgba(163, 4, 4, 0.78));
+    color: white;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    border-radius: 12px;
+    padding: 8px 0;
+    box-sizing: border-box;
+    text-align: center;
+   margin-bottom: 30px;
+}
+
 
 .appointments-table {
     background: white;
@@ -8,26 +19,23 @@
     overflow-y: auto;
 }
 
-
 .table-striped > tbody > tr:nth-of-type(odd) > td {
-    background-color: rgba(163, 4, 4, 0.04); /* subtle red tint */
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
-#adminTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-#adminTable th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #a30404; /* red divider */
+/* Custom header styling that matches user/provider dashboard but with red theme */
+.table thead th {
+    background-color: rgba(163, 4, 4, 0.78);
+    color: white;
+    border-bottom: 2px solid #8b0000;
     font-weight: 600;
-    color: #a30404; /* red header text */
     padding: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-#adminTable td {
+.table td {
     padding: 15px;
     vertical-align: middle;
 }
@@ -38,3 +46,28 @@
     font-style: italic;
     padding: 30px;
 }
+
+/* Search filters styling to match user dashboard */
+.search-filters {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.download-report-group {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+}
+
+/* Invert btn-outline-danger for selected toggle */
+.btn-outline-danger.selected, .btn-outline-danger.active {
+    color: #fff;
+    background-color: rgba(163, 4, 4, 0.78);
+    border-color: rgba(163, 4, 4, 0.78);
+}
+

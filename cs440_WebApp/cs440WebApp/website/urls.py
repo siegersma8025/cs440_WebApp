@@ -16,4 +16,5 @@ urlpatterns = [
     path('dashboard/admin/downloadUserReport/', views.downloadUserReport, name='downloadUserReport'),
     path('dashboard/admin/downloadAllUsersReport/', views.downloadAllUsersReport, name='downloadAllUsersReport'),
     path('dashboard/admin/downloadProviderReport/', views.downloadProviderReport, name='downloadProviderReport'),
+    path('dashboard/admin/downloadAllProvidersReport/', views.downloadAllProvidersReport, name='downloadAllProvidersReport'),
 ]

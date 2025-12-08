@@ -174,7 +174,7 @@ def providerDashboard(request):
                 providerFirstName=provider_profile.first_name,
                 providerLastName=provider_profile.last_name,
                 appointmentName=cd.get('appointmentName'),
-                appointmentType=provider_profile.category,  # Set from provider's category
+                appointmentType=provider_profile.category,
                 date=cd.get('date'),
                 start_time=cd.get('start_time'),
                 end_time=cd.get('end_time'),
@@ -192,15 +192,16 @@ def providerDashboard(request):
     dateFilter = request.GET.get('dateFilter', '')
 
     # Get all slots for this provider
-    slots_qs = AppointmentSlot.objects.filter(providerUsername=request.user.username)
-    filtered_slots = filterAppointments(slots_qs, search, typeFilter, dateFilter)
+    slotsQuerySet = AppointmentSlot.objects.filter(providerUsername=request.user.username)
+    slotsQuerySet = filterNonPastAppointments(slotsQuerySet)
+    filteredSlots = filterAppointments(slotsQuerySet, search, typeFilter, dateFilter)
 
     # Collect unique types for the filter dropdown
-    types = sorted(set(slot.appointmentType.strip() for slot in slots_qs))
+    types = sorted(set(slot.appointmentType.strip() for slot in slotsQuerySet))
 
     return render(request, 'providerDashboard.html', {
         'provider': provider_profile,
-        'slots': filtered_slots,
+        'slots': filteredSlots,
         'slot_form': slot_form,
         'types': types,
         'searchInput': search,
@@ -210,6 +211,7 @@ def providerDashboard(request):
 
 
 @never_cache
+@csrf_protect
 def userDashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -221,19 +223,25 @@ def userDashboard(request):
     # Booked appointments for the user
     bookings = Booking.objects.filter(user=request.user).select_related("slot")
 
-    # --- Handle filters ---
+    # Handle filters
     search = request.GET.get('searchInput', '').strip().lower()
     typeFilter = request.GET.get('typeFilter', '')
     dateFilter = request.GET.get('dateFilter', '')
+    bookedSearch = request.GET.get('bookedSearchInput', '').strip().lower()
+    bookedTypeFilter = request.GET.get('bookedTypeFilter', '')
+
+    # Booked appointments for the user
+    bookingsQuerySet = Booking.objects.filter(user=request.user).select_related("slot")
+    bookings = filterBookings(bookingsQuerySet, bookedSearch, bookedTypeFilter)
+
 
     # Get all appointment slots
-    slots_queryset = AppointmentSlot.objects.filter(is_booked=False)
-
-    # Use your existing filterAppointments function
-    slots = filterAppointments(slots_queryset, search, typeFilter, dateFilter)
+    slotsQuerySet = AppointmentSlot.objects.filter(is_booked=False)
+    slotsQuerySet = filterNonPastAppointments(slotsQuerySet)
+    slots = filterAppointments(slotsQuerySet, search, typeFilter, dateFilter)
 
     # Get all types for dropdown
-    types = sorted(set(slot.appointmentType.strip() for slot in slots_queryset))
+    types = sorted(set(slot.appointmentType.strip() for slot in slotsQuerySet))
 
     # Render template
     return render(request, 'userDashboard.html', {
@@ -244,6 +252,8 @@ def userDashboard(request):
         'searchInput': search,
         'typeFilter': typeFilter,
         'dateFilter': dateFilter,
+        'bookedSearchInput': bookedSearch,
+        'bookedTypeFilter': bookedTypeFilter,
     })
 
 
@@ -288,7 +298,7 @@ def adminDashboard(request):
         # Handle user/provider removal
         elif view_mode == 'users':
             username = request.POST.get("username")
-            if delete_user_and_profile(username):
+            if deleteUserAndProfile(username):
                 messages.success(request, "User/Provider account deleted.")
             else:
                 messages.error(request, "User not found.")
@@ -448,4 +458,15 @@ def downloadProviderReport(request):
             return response
         messages.error(request, "Provider not found or no data.")
         return redirect('adminDashboard')
+    return redirect('adminDashboard')
+
+@never_cache
+@csrf_protect
+def downloadAllProvidersReport(request):
+    if request.method == "POST":
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
+        appointment_type = request.POST.get("appointment_type") or None
+        response = generateAllProvidersReport(start_date, end_date, appointment_type)
+        return response
     return redirect('adminDashboard')

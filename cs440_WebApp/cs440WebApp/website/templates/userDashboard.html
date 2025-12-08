@@ -18,17 +18,37 @@
 </div>
 {% endif %}
 
-<h2>Hello {{ request.user.first_name }}!</h2>
+<div class="dashboard-header-name">
+    <h2>Hello {{ request.user.first_name }}!</h2>
+</div>
+
+
 </br>
 
+<div class="dashboard-header">
+    <h2>My Bookings</h2>
+</div>
+
 <div class="slots-section">
-    <h2>Booked Appointments</h2>
+    <!-- Booked appointments search/filter form -->
+    <form method="get" class="search-filters" id="bookedFilterForm" style="margin-bottom: 20px;">
+        <input type="text" name="bookedSearchInput" value="{{ bookedSearchInput }}" placeholder="Search bookings..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;">
+        <select name="bookedTypeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;">
+            <option value="">All Types</option>
+            {% for t in types %}
+            <option value="{{ t }}" {% if t == bookedTypeFilter %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" style="padding: 8px 16px; border: none; background: #007bff; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
+        <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #007bff; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
+    </form>
 
     <div class="appointments-table">
         <table class="table table-striped mb-0">
             <thead>
                 <tr>
                     <th>Appointment Name</th>
+                    <th>Appointment Type</th>
                     <th>Provider Username</th>
                     <th>Date</th>
                     <th>Start Time</th>
@@ -40,6 +60,7 @@
                 {% for booking in bookings %}
                 <tr>
                     <td>{{ booking.slot.appointmentName }}</td>
+                    <td>{{ booking.slot.appointmentType }}</td>
                     <td>{{ booking.slot.providerUsername }}</td>
                     <td>{{ booking.slot.date }}</td>
                     <td>{{ booking.slot.start_time }}</td>
@@ -69,16 +90,16 @@
 </div>
 
 <form method="get" class="search-filters" id="filterForm">
-    <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="searchInput">
-    <select name="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="typeFilter">
+    <input type="text" name="searchInput" value="{{ searchInput }}" placeholder="Search appointments..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;" id="searchInput">
+    <select name="typeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;" id="typeFilter">
         <option value="">All Types</option>
         {% for t in types %}
         <option value="{{ t }}" {% if t == typeFilter %}selected{% endif %}>{{ t }}</option>
         {% endfor %}
     </select>
-    <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #a30404; border-radius: 6px;" id="dateFilter">
-    <button type="submit" style="padding: 8px 16px; border: none; background: #a30404; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
-    <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #a30404; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
+    <input type="date" name="dateFilter" value="{{ dateFilter }}" style="padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;" id="dateFilter">
+    <button type="submit" style="padding: 8px 16px; border: none; background: #007bff; color: white; border-radius: 6px;margin-left: 10px;">Filter</button>
+    <button type="button" onclick="window.location.href='{{ request.path }}'" style="padding: 8px 16px; border: none; background: #007bff; color: #f8f9fa; border-radius: 6px; margin-left: 10px;">Clear</button>
 </form>
 
 <div class="appointments-table">

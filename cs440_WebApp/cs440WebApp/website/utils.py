@@ -7,19 +7,19 @@ from django.http import HttpResponse
 def convertFromMilitaryTime(timeStamp):
     return timeStamp.strftime('%I:%M %p').lstrip('0').replace(' 0', ' ')
 
-def filter_non_past_appointments(queryset):
-    """
-    Filter out past appointments from a queryset or list.
-    Returns a list of appointments that are not in the past.
-    """
-    return [item for item in queryset if not item.is_past()]
+def filterNonPastAppointments(queryset):
+    nonPastAppointments = []
+    for item in queryset:
+        if not item.is_past():
+            nonPastAppointments.append(item)
+    return nonPastAppointments
 
-def filter_non_past_bookings(bookings):
-    """
-    Filter out past bookings from a queryset or list.
-    Returns a list of bookings whose appointment slots are not in the past.
-    """
-    return [booking for booking in bookings if not booking.slot.is_past()]
+def filterNonPastBookings(bookings):
+    nonPastBookings = []
+    for booking in bookings:
+        if not booking.slot.is_past():
+            nonPastBookings.append(booking)
+    return nonPastBookings
 
 def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''):
     filtered = []
@@ -65,12 +65,7 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
 
 
 def filterUsers(user_profiles, provider_profiles, search='', typeFilter=''):
-    """
-    Filters user_profiles and provider_profiles by type and search string.
-    - typeFilter: 'User', 'Provider', or '' (all)
-    - search: partial, case-insensitive match on username or full name
-    Returns: (filtered_user_profiles, filtered_provider_profiles)
-    """
+
     search = search.strip().lower()
 
     # Filter by type
@@ -91,14 +86,23 @@ def filterUsers(user_profiles, provider_profiles, search='', typeFilter=''):
 
     return user_profiles, provider_profiles
 
+def filterBookings(bookings, search='', typeFilter=''):
+    search = search.strip().lower()
+    filtered = []
+    for booking in bookings:
+        slot = booking.slot
+        provider_name = f"{slot.providerFirstName} {slot.providerLastName}"
+        if search:
+            combined = f"{slot.appointmentName} {slot.providerUsername} {provider_name}".lower()
+            if search not in combined:
+                continue
+        if typeFilter and slot.appointmentType != typeFilter:
+            continue
+        filtered.append(booking)
+    return filtered
+
 # Based on username, delete user and associated profile/provider entries from the database
-def delete_user_and_profile(username):
-    """
-    Deletes a user and their associated profile/provider entries from the database.
-    - Looks up the user id from auth_user by username.
-    - Deletes from UserProfile or ServiceProvider by user id.
-    - Deletes from auth_user by username.
-    """
+def deleteUserAndProfile(username):
     # Get user id from auth_user
     with connection.cursor() as cursor:
         cursor.execute("SELECT id FROM auth_user WHERE username = %s", [username])
@@ -107,6 +111,8 @@ def delete_user_and_profile(username):
             return False  # User not found
         user_id = row[0]
 
+    # Delete related bookings first
+    Booking.objects.filter(user_id=user_id).delete()
     # Delete from UserProfile if exists
     UserProfile.objects.filter(user_id=user_id).delete()
     # Delete from ServiceProvider if exists
@@ -218,3 +224,34 @@ def generateProviderAppointmentsCsv(username, startDate, endDate):
             bookedFlag
         ])
     return response
+
+def generateAllProvidersReport(startDate, endDate, appointmentType=None):
+    slots = AppointmentSlot.objects.filter(
+        date__gte=startDate,
+        date__lte=endDate
+    )
+    if appointmentType:
+        slots = slots.filter(appointmentType=appointmentType)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="All_Providers_Appointments_Report.csv"'
+    writer = csv.writer(response)
+    writer.writerow([
+        'Provider Username', 'Provider Name', 'Appointment Name', 'Appointment Type', 'Date', 'Start Time', 'End Time', 'Booked', 'Booked By'
+    ])
+    for slot in slots:
+        booking = Booking.objects.filter(slot=slot).first()
+        booked_flag = 'Yes' if booking else 'No'
+        booked_by = booking.user.get_full_name() if booking else ''
+        writer.writerow([
+            slot.providerUsername,
+            f"{slot.providerFirstName} {slot.providerLastName}",
+            slot.appointmentName,
+            slot.appointmentType,
+            slot.date,
+            slot.start_time,
+            slot.end_time,
+            booked_flag,
+            booked_by
+        ])
+    return response
+
