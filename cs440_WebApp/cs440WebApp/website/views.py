@@ -164,6 +164,9 @@ def providerDashboard(request):
         messages.error(request, "Access denied: You are not registered as a provider.")
         return redirect('home')
 
+    # Get and clear canceled messages for provider
+    canceledMsgs = provider_profile.get_and_clear_canceled_msgs()
+
     # Handle new slot form submission
     if request.method == "POST":
         slot_form = AppointmentSlotForm(request.POST)
@@ -207,6 +210,7 @@ def providerDashboard(request):
         'searchInput': search,
         'typeFilter': typeFilter,
         'dateFilter': dateFilter,
+        'canceled_msgs': canceledMsgs,
     })
 
 

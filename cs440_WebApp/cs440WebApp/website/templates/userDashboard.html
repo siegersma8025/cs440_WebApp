@@ -7,6 +7,11 @@
 
 {% block content %}
 
+
+<div class="dashboard-header-name">
+    <h2>Hello {{ request.user.first_name }}!</h2>
+</div>
+
 {% if canceled_msgs %}
 <div class="alert alert-warning" role="alert" style="margin-top: 20px;">
     <strong>Cancelation Notices:</strong>
@@ -17,11 +22,6 @@
     </ul>
 </div>
 {% endif %}
-
-<div class="dashboard-header-name">
-    <h2>Hello {{ request.user.first_name }}!</h2>
-</div>
-
 
 </br>
 

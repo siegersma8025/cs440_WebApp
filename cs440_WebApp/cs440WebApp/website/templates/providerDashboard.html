@@ -7,6 +7,10 @@
 
 {% block content %}
 
+<div class="provider-header-name">
+    <h2>Hello {{ provider.first_name }}!</h2>
+</div>
+
 {% if canceled_msgs %}
 <div class="alert alert-warning" role="alert" style="margin-top: 20px;">
     <strong>Cancelation Notices:</strong>
@@ -18,9 +22,7 @@
 </div>
 {% endif %}
 
-<div class="provider-header-name">
-    <h2>Hello {{ provider.first_name }}!</h2>
-</div>
+<br/>
 
 <div class="provider-header">
     <h2>Your Appointments</h2>
