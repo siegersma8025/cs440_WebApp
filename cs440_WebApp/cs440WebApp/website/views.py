@@ -281,6 +281,7 @@ def adminDashboard(request):
             start_time_str = convertFromMilitaryTime(slot.start_time)
             end_time_str = convertFromMilitaryTime(slot.end_time)
             date_str = slot.date.strftime('%m/%d/%Y')
+            provider_profile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
             if booking:
                 user_profile = getattr(booking.user, 'userprofile', None)
                 if user_profile:
@@ -289,14 +290,20 @@ def adminDashboard(request):
                         f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
                     )
                     append_cancel_message(user_profile, msg_user)
-                provider_profile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
                 if provider_profile:
                     msg_provider = (
-                        f"An administrator canceled '{slot.appointmentName}' with {booking.user.get_full_name()} "
-                        f"on {date_str} at {start_time_str}-{end_time_str}."
+                        f"Your appointment '{slot.appointmentName}' with {booking.user.get_full_name()} "
+                        f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
                     )
                     append_cancel_message(provider_profile, msg_provider)
                 booking.delete()
+            else:
+                if provider_profile:
+                    msg_provider = (
+                        f"Your appointment '{slot.appointmentName}' "
+                        f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
+                    )
+                    append_cancel_message(provider_profile, msg_provider)
             slot.delete()
             messages.success(request, "Appointment canceled and removed.")
             return redirect(f'{request.path}?view=appointments')
