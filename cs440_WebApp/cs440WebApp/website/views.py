@@ -232,6 +232,7 @@ def userDashboard(request):
 
     # Booked appointments for the user
     bookingsQuerySet = Booking.objects.filter(user=request.user).select_related("slot")
+    bookingsQuerySet  = filterNonPastBookings(bookingsQuerySet)
     bookings = filterBookings(bookingsQuerySet, bookedSearch, bookedTypeFilter)
 
 
