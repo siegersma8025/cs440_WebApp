@@ -59,11 +59,15 @@
                     <td>{{ item.date }}</td>
                     <td>{{ item.time }}</td>
                     <td>
+                        {% if not item.is_past %}
                         <form method="POST" style="margin:0;">
                             {% csrf_token %}
                             <input type="hidden" name="slot_id" value="{{ item.slot_id }}">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                         </form>
+                        {% else %}
+                        <span class="text-muted" style="font-size: 0.95em;">Past</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
@@ -157,6 +161,10 @@
                           </div>
                         </div>
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-appointments">No users or providers found.</td>
                 </tr>
                 {% endfor %}
                 {% for profile in provider_profiles %}

@@ -1,6 +1,7 @@
 import json
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 
 
 # Service provider object/model that will be used to push to database
@@ -52,7 +53,6 @@ class AppointmentSlot(models.Model):
 
     def is_past(self):
         """Check if this appointment slot is in the past"""
-        from datetime import datetime, time
         now = datetime.now()
         
         # If appointment date is before today, it's past

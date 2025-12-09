@@ -59,7 +59,10 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
             'time': f"{convertFromMilitaryTime(slot.start_time)} - {convertFromMilitaryTime(slot.end_time)}",
             'start_time': slot.start_time,
             'end_time': slot.end_time,
+            'is_past': slot.is_past(),
         })
+        # Sort so non-past appointments come first
+    filtered.sort(key=lambda x: x['is_past'])
     # Return the filtered list of appointments
     return filtered
 
