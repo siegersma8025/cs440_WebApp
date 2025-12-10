@@ -7,16 +7,15 @@
 
 {% block content %}
 
-
 <div class="dashboard-header-name">
     <h2>Hello {{ request.user.first_name }}!</h2>
 </div>
 
-{% if canceled_msgs %}
+{% if canceledMsgs %}
 <div class="alert alert-warning" role="alert" style="margin-top: 20px;">
     <strong>Cancelation Notices:</strong>
     <ul style="margin-bottom: 0;">
-        {% for msg in canceled_msgs %}
+        {% for msg in canceledMsgs %}
             <li>{{ msg }}</li>
         {% endfor %}
     </ul>
@@ -30,7 +29,6 @@
 </div>
 
 <div class="slots-section">
-    <!-- Booked appointments search/filter form -->
     <form method="get" class="search-filters" id="bookedFilterForm" style="margin-bottom: 20px;">
         <input type="text" name="bookedSearchInput" value="{{ bookedSearchInput }}" placeholder="Search bookings..." style="width: 220px; margin-right: 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;">
         <select name="bookedTypeFilter" style="margin-right: 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 6px;">
@@ -50,6 +48,7 @@
                     <th>Appointment Name</th>
                     <th>Appointment Type</th>
                     <th>Provider Username</th>
+                    <th>Provider Name</th>
                     <th>Date</th>
                     <th>Start Time</th>
                     <th>End Time</th>
@@ -62,9 +61,10 @@
                     <td>{{ booking.slot.appointmentName }}</td>
                     <td>{{ booking.slot.appointmentType }}</td>
                     <td>{{ booking.slot.providerUsername }}</td>
+                    <td>{{ booking.slot.providerFirstName }} {{ booking.slot.providerLastName }}</td>
                     <td>{{ booking.slot.date }}</td>
-                    <td>{{ booking.slot.start_time }}</td>
-                    <td>{{ booking.slot.end_time }}</td>
+                    <td>{{ booking.slot.startTime }}</td>
+                    <td>{{ booking.slot.endTime }}</td>
                     <td>
                         <form method="POST" action="{% url 'cancelAppointment' booking.slot.id %}">
                             {% csrf_token %}
@@ -81,7 +81,6 @@
         </table>
     </div>
 </div>
-
 
 <hr class="section-divider">
 
@@ -108,7 +107,7 @@
             <tr>
                 <th>Appointment Name</th>
                 <th>Appointment Type</th>
-                <th>Provider Username</th>
+                <th>Provider</th>
                 <th>Date</th>
                 <th>Start Time</th>
                 <th>End Time</th>
@@ -118,15 +117,15 @@
         <tbody>
             {% for slot in slots %}
             <tr>
-                <td>{{ slot.appointment_name }}</td>
-                <td>{{ slot.appointment_type }}</td>
-                <td>{{ slot.provider_name }}</td>
+                <td>{{ slot.appointmentName }}</td>
+                <td>{{ slot.appointmentType }}</td>
+                <td>{{ slot.providerName }}</td>
                 <td>{{ slot.date }}</td>
-                <td>{{ slot.start_time }}</td>
-                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.startTime }}</td>
+                <td>{{ slot.endTime }}</td>
                 <td>
-                    {% if not slot.is_booked %}
-                    <form method="POST" action="{% url 'bookAppointment' slot.slot_id %}">
+                    {% if not slot.isPast %}
+                    <form method="POST" action="{% url 'bookAppointment' slot.slotId %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-success btn-book">Book</button>
                     </form>

@@ -1,4 +1,4 @@
-import json
+# Import necessary Django modules (any functions with underscores are django built-in functions)
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -11,43 +11,46 @@ from .utils import *
 
 
 # Helper function to reduce duplicate authentication code
-def check_authentication_and_role(request, role_check, error_message):
-    """Centralized authentication and role checking"""
+def checkAuthenticationAndRole(request, roleCheck, errorMessage):
+    #Centralized authentication and role checking
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to access this page.")
         return redirect('home')
-    if not role_check(request.user):
-        messages.error(request, error_message)
+    if not roleCheck(request.user):
+        messages.error(request, errorMessage)
         return redirect('home')
     return None
 
+
 # Custom decorators for role-based access control
-def user_required(view_func):
-    """Decorator to ensure only regular users can access this view"""
+def userRequired(viewFunction):
+    #Decorator to ensure only regular users can access this view
     def wrapper(request, *args, **kwargs):
-        redirect_response = check_authentication_and_role(
+        redirect_response = checkAuthenticationAndRole(
             request, 
             lambda user: hasattr(user, 'userprofile'),
             "Access denied: This page is for registered users only."
         )
-        return redirect_response or view_func(request, *args, **kwargs)
+        return redirect_response or viewFunction(request, *args, **kwargs)
     return wrapper
 
-def provider_required(view_func):
-    """Decorator to ensure only service providers can access this view"""
+
+def providerRequired(viewFunction):
+    #Decorator to ensure only service providers can access this view
     def wrapper(request, *args, **kwargs):
-        redirect_response = check_authentication_and_role(
+        redirect_response = checkAuthenticationAndRole(
             request,
             lambda user: hasattr(user, 'serviceprovider'),
             "Access denied: This page is for service providers only."
         )
-        return redirect_response or view_func(request, *args, **kwargs)
+        return redirect_response or viewFunction(request, *args, **kwargs)
     return wrapper
 
-def admin_required(view_func):
-    """Decorator to ensure only admins can access this view"""
+
+def adminRequired(view_func):
+    #Decorator to ensure only admins can access this view
     def wrapper(request, *args, **kwargs):
-        redirect_response = check_authentication_and_role(
+        redirect_response = checkAuthenticationAndRole(
             request,
             lambda user: user.is_superuser or user.is_staff or hasattr(user, 'adminprofile'),
             "Access denied: This page is for administrators only."
@@ -55,9 +58,11 @@ def admin_required(view_func):
         return redirect_response or view_func(request, *args, **kwargs)
     return wrapper
 
-#help page
-def help_page(request):
-    return render(request, "help.html")   
+
+def helpView(request):
+    return render(request, "help.html")
+
+
 # Each view is essentially a function that takes in a request and returns a response
 # The response is usually a rendered HTML template
 # The request can be a GET or POST request
@@ -98,7 +103,7 @@ def home(request):
                 elif hasattr(user, 'userprofile'):
                     return redirect('userDashboard')
                 else:
-                    # Fallback: User exists but has no profile
+                    # User exists but has no profile
                     logout(request)
                     messages.warning(request, "Your account is not properly set up. Please contact an administrator.")
                     return redirect('home')
@@ -128,8 +133,8 @@ def registerUser(request):
             # Create UserProfile object
             UserProfile.objects.create(
                 user=user,
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name']
+                firstName=form.cleaned_data['firstName'],
+                lastName=form.cleaned_data['lastName']
             )
             messages.success(request, "Registration Successful! You can now log in.")
             return redirect('home')
@@ -145,7 +150,7 @@ def registerProvider(request):
     if request.method == "POST":
         form = ProviderSignUpForm(request.POST)
         if form.is_valid():
-            form.save()  # This creates both User and ServiceProvider
+            form.save()
             messages.success(request, "Registration Successful! You can now log in.")
             return redirect('home')
         else:
@@ -156,38 +161,27 @@ def registerProvider(request):
 
 
 @never_cache
-@provider_required
+@providerRequired
 def providerDashboard(request):
     try:
-        provider_profile = ServiceProvider.objects.get(user=request.user)
+        # Get provider profile from database via model
+        providerProfile = ServiceProvider.objects.get(user=request.user)
     except ServiceProvider.DoesNotExist:
         messages.error(request, "Access denied: You are not registered as a provider.")
         return redirect('home')
 
     # Get and clear canceled messages for provider
-    canceledMsgs = provider_profile.get_and_clear_canceled_msgs()
+    canceledMsgs = providerProfile.getAndClearCanceledMsgs()
 
     # Handle new slot form submission
     if request.method == "POST":
-        slot_form = AppointmentSlotForm(request.POST)
-        if slot_form.is_valid():
-            cd = slot_form.cleaned_data
-            new_slot = AppointmentSlot(
-                providerUsername=request.user.username,
-                providerFirstName=provider_profile.first_name,
-                providerLastName=provider_profile.last_name,
-                appointmentName=cd.get('appointmentName'),
-                appointmentType=provider_profile.category,
-                date=cd.get('date'),
-                start_time=cd.get('start_time'),
-                end_time=cd.get('end_time'),
-                is_booked=False,
-            )
-            new_slot.save()
+        slotForm = AppointmentSlotForm(request.POST)
+        if slotForm.is_valid():
+            slotForm.save(providerProfile)
             messages.success(request, "Appointment slot added successfully.")
             return redirect('providerDashboard')
     else:
-        slot_form = AppointmentSlotForm()
+        slotForm = AppointmentSlotForm()
 
     # Filtering parameters
     search = request.GET.get('searchInput', '').strip().lower()
@@ -203,29 +197,28 @@ def providerDashboard(request):
     types = sorted(set(slot.appointmentType.strip() for slot in slotsQuerySet))
 
     return render(request, 'providerDashboard.html', {
-        'provider': provider_profile,
+        'provider': providerProfile,
         'slots': filteredSlots,
-        'slot_form': slot_form,
+        'slotForm': slotForm,
         'types': types,
         'searchInput': search,
         'typeFilter': typeFilter,
         'dateFilter': dateFilter,
-        'canceled_msgs': canceledMsgs,
+        'canceledMsgs': canceledMsgs,
     })
 
 
 @never_cache
 @csrf_protect
 def userDashboard(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    # Load cancellation messages
-    user_profile = getattr(request.user, 'userprofile', None)
-    canceled_msgs = user_profile.get_and_clear_canceled_msgs() if user_profile else []
-
-    # Booked appointments for the user
-    bookings = Booking.objects.filter(user=request.user).select_related("slot")
+    try:
+        # Get provider profile from database via model
+        userProfile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Access denied: You are not registered as a user.")
+        return redirect('home')
+    
+    canceledMsgs = userProfile.getAndClearCanceledMsgs()
 
     # Handle filters
     search = request.GET.get('searchInput', '').strip().lower()
@@ -241,7 +234,7 @@ def userDashboard(request):
 
 
     # Get all appointment slots
-    slotsQuerySet = AppointmentSlot.objects.filter(is_booked=False)
+    slotsQuerySet = AppointmentSlot.objects.filter(isBooked=False)
     slotsQuerySet = filterNonPastAppointments(slotsQuerySet)
     slots = filterAppointments(slotsQuerySet, search, typeFilter, dateFilter)
 
@@ -250,7 +243,7 @@ def userDashboard(request):
 
     # Render template
     return render(request, 'userDashboard.html', {
-        'canceled_msgs': canceled_msgs,
+        'canceledMsgs': canceledMsgs,
         'bookings': bookings,
         'slots': slots,
         'types': types,
@@ -270,45 +263,42 @@ def adminDashboard(request):
         messages.error(request, "Access denied: This page is for administrators only.")
         return redirect('home')
 
-    view_mode = request.GET.get('view', 'appointments')
+    viewMode = request.GET.get('view', 'appointments')
 
     if request.method == "POST":
         # Handle appointment cancellation
-        if view_mode == 'appointments':
-            slot_id = request.POST.get("slot_id")
-            slot = get_object_or_404(AppointmentSlot, id=slot_id)
+        if viewMode == 'appointments':
+            slotID = request.POST.get("slotId")
+            slot = get_object_or_404(AppointmentSlot, id=slotID)
             booking = Booking.objects.filter(slot=slot).first()
-            start_time_str = convertFromMilitaryTime(slot.start_time)
-            end_time_str = convertFromMilitaryTime(slot.end_time)
-            date_str = slot.date.strftime('%m/%d/%Y')
-            provider_profile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
+            formattedStartTime = convertFromMilitaryTime(slot.startTime)
+            formattedEndTime = convertFromMilitaryTime(slot.endTime)
+            formattedDate = slot.date.strftime('%m/%d/%Y')
+            providerProfile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
             if booking:
-                user_profile = getattr(booking.user, 'userprofile', None)
-                if user_profile:
-                    msg_user = (
-                        f"Your appointment '{slot.appointmentName}' with {slot.providerFirstName} {slot.providerLastName} "
-                        f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
-                    )
-                    append_cancel_message(user_profile, msg_user)
-                if provider_profile:
-                    msg_provider = (
-                        f"Your appointment '{slot.appointmentName}' with {booking.user.get_full_name()} "
-                        f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
-                    )
-                    append_cancel_message(provider_profile, msg_provider)
+                userProfile = UserProfile.objects.filter(user=booking.user).first()
+                # User cancelation message
+                if userProfile:
+                    userCancelMsg = (f"Your appointment '{slot.appointmentName}' with {slot.providerFirstName} {slot.providerLastName} "f"on {formattedDate} at {formattedStartTime}-{formattedEndTime} was canceled by an administrator.")
+                    appendCancelMessage(userProfile, userCancelMsg)
+                # Provider cancelation message
+                if providerProfile:
+                    msg_provider = (f"Your appointment '{slot.appointmentName}' with {booking.user.get_full_name()} "f"on {formattedDate} at {formattedStartTime}-{formattedEndTime} was canceled by an administrator.")
+                    appendCancelMessage(providerProfile, msg_provider)
+                # Delete/remove booking
                 booking.delete()
             else:
-                if provider_profile:
-                    msg_provider = (
-                        f"Your appointment '{slot.appointmentName}' "
-                        f"on {date_str} at {start_time_str}-{end_time_str} was canceled by an administrator."
-                    )
-                    append_cancel_message(provider_profile, msg_provider)
+                # If slot was not booked and canceled, just notify provider
+                if providerProfile:
+                    msg_provider = (f"Your appointment '{slot.appointmentName}' "f"on {formattedDate} at {formattedStartTime}-{formattedEndTime} was canceled by an administrator.")
+                    appendCancelMessage(providerProfile, msg_provider)
+            # Delete/appointment slot
             slot.delete()
             messages.success(request, "Appointment canceled and removed.")
             return redirect(f'{request.path}?view=appointments')
+       
         # Handle user/provider removal
-        elif view_mode == 'users':
+        elif viewMode == 'users':
             username = request.POST.get("username")
             if deleteUserAndProfile(username):
                 messages.success(request, "User/Provider account deleted.")
@@ -316,15 +306,16 @@ def adminDashboard(request):
                 messages.error(request, "User not found.")
             return redirect(f'{request.path}?view=users')
 
-    if view_mode == 'appointments':
+    if viewMode == 'appointments':
         search = request.GET.get('searchInput', '')
         typeFilter = request.GET.get('typeFilter', '')
         dateFilter = request.GET.get('dateFilter', '')
         slots = AppointmentSlot.objects.all()
         items = filterAppointments(slots, search, typeFilter, dateFilter)
+        # Set creates a list of unique items no matter the number of times they appear
         types = sorted(set(slot.appointmentType.strip() for slot in slots))
         context = {
-            'view_mode': 'appointments',
+            'viewMode': 'appointments',
             'items': items,
             'types': types,
             'searchInput': search,
@@ -332,53 +323,55 @@ def adminDashboard(request):
             'dateFilter': dateFilter,
         }
         return render(request, 'adminDashboard.html', context)
+    
     else:
         userSearchInput = request.GET.get('userSearchInput', '')
         userTypeFilter = request.GET.get('userTypeFilter', '')
-        user_profiles = UserProfile.objects.select_related('user').all()
-        provider_profiles = ServiceProvider.objects.select_related('user').all()
-        user_profiles, provider_profiles = filterUsers(
-            user_profiles, provider_profiles,
+        allUserProfiles = UserProfile.objects.select_related('user').all()
+        allProviderProfiles = ServiceProvider.objects.select_related('user').all()
+        # utilize filter (will return filtered user and provider profiles based on results from search and filter bar in app)
+        allUserProfiles, allProviderProfiles = filterUsers(
+            allUserProfiles, allProviderProfiles,
             search=userSearchInput,
             typeFilter=userTypeFilter
         )
         slots = AppointmentSlot.objects.all()
         types = sorted(set(slot.appointmentType.strip() for slot in slots))
         context = {
-            'view_mode': 'users',
-            'user_profiles': user_profiles,
-            'provider_profiles': provider_profiles,
+            'viewMode': 'users',
+            'allUserProfiles': allUserProfiles,
+            'allProviderProfiles': allProviderProfiles,
             'userSearchInput': userSearchInput,
             'userTypeFilter': userTypeFilter,
             'types': types,
         }
         return render(request, 'adminDashboard.html', context)
 
-@user_required
+@userRequired
 @csrf_protect
-def bookAppointment(request, slot_id):
-    slot = get_object_or_404(AppointmentSlot, id=slot_id, is_booked=False)
+def bookAppointment(request, slotId):
+    slot = get_object_or_404(AppointmentSlot, id=slotId, isBooked=False)
 
     if request.method == "POST":
         # Check for conflicting appointments for this user
-        user_bookings = Booking.objects.filter(user=request.user, slot__date=slot.date)
-        for booking in user_bookings:
-            booked_slot = booking.slot
+        userBookings = Booking.objects.filter(user=request.user, slot__date=slot.date)
+        for booking in userBookings:
+            bookedSlot = booking.slot
             # If times overlap, block booking
-            if (slot.start_time < booked_slot.end_time and slot.end_time > booked_slot.start_time):
+            if (slot.startTime < bookedSlot.endTime and slot.endTime > bookedSlot.startTime):
                 messages.error(
                     request,
-                    f"Conflicting appointment: You already have '{booked_slot.appointmentName}' from "
-                    f"{convertFromMilitaryTime(booked_slot.start_time)} to {convertFromMilitaryTime(booked_slot.end_time)} on {booked_slot.date.strftime('%m/%d/%Y')}."
+                    f"Conflicting appointment: You already have '{bookedSlot.appointmentName}' from "
+                    f"{convertFromMilitaryTime(bookedSlot.startTime)} to {convertFromMilitaryTime(bookedSlot.endTime)} on {bookedSlot.date.strftime('%m/%d/%Y')}."
                 )
-                return redirect('userDashboard')  # Only error message, no success
+                return redirect('userDashboard') 
 
-        # Double-check that slot is still available (race condition protection)
-        if slot.is_booked:
+        # Double-check that slot is still available
+        if slot.isBooked:
             messages.error(request, "Sorry, this appointment has already been booked.")
             return redirect('userDashboard')
 
-        slot.is_booked = True
+        slot.isBooked = True
         slot.save()
         Booking.objects.create(slot=slot, user=request.user)
         messages.success(request, "Appointment booked successfully!")
@@ -387,46 +380,47 @@ def bookAppointment(request, slot_id):
         messages.error(request, "Invalid request method.")
         return redirect('userDashboard') 
 
-def append_cancel_message(profile, message):
+def appendCancelMessage(profile, message):
     if profile:
         import json
-        msgs = json.loads(profile.canceled_msgs)
+        msgs = json.loads(profile.canceledMsgs)
         msgs.append(message)
-        profile.canceled_msgs = json.dumps(msgs)
+        profile.canceledMsgs = json.dumps(msgs)
         profile.save()
 
 @csrf_protect
-def cancelAppointment(request, slot_id):
-    slot = get_object_or_404(AppointmentSlot, id=slot_id)
+def cancelAppointment(request, slotId):
+    slot = get_object_or_404(AppointmentSlot, id=slotId)
     booking = Booking.objects.filter(slot=slot).first()
 
-    is_provider = hasattr(request.user, 'serviceprovider') and slot.providerUsername == request.user.username
-    is_user = booking and hasattr(request.user, 'userprofile') and booking.user == request.user
+    isProvider = hasattr(request.user, 'serviceprovider') and slot.providerUsername == request.user.username
+    isUser = booking and hasattr(request.user, 'userprofile') and booking.user == request.user
 
-    if not (is_user or is_provider):
+    if not (isUser or isProvider):
         messages.error(request, "Access denied: This page is for registered users or providers only.")
         return redirect('home')
 
-    start_time_str = convertFromMilitaryTime(slot.start_time)
-    end_time_str = convertFromMilitaryTime(slot.end_time)
-    date_str = slot.date.strftime('%m/%d/%Y')  # Month/Day/Year format
+    formattedStartTime = convertFromMilitaryTime(slot.startTime)
+    formattedEndTime = convertFromMilitaryTime(slot.endTime)
+    formattedDate = slot.date.strftime('%m/%d/%Y')  # Month/Day/Year format
 
-    if is_user:
+    if isUser:
         # User cancels: add message for provider, remove booking
-        provider_profile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
-        msg = f"{booking.user.get_full_name()} canceled '{slot.appointmentName}' with you on {date_str} at {start_time_str}-{end_time_str}."
-        append_cancel_message(provider_profile, msg)
+        providerProfile = ServiceProvider.objects.filter(user__username=slot.providerUsername).first()
+        msg = f"{booking.user.get_full_name()} canceled '{slot.appointmentName}' with you on {formattedDate} at {formattedStartTime}-{formattedEndTime}."
+        appendCancelMessage(providerProfile, msg)
         booking.delete()
-        slot.is_booked = False
+        slot.isBooked = False
         slot.save()
         messages.success(request, "Appointment canceled.")
         return redirect("userDashboard")
-    elif is_provider:
+    
+    elif isProvider:
         # Provider cancels: add message for user if booked, remove booking if exists, always remove slot
         if booking:
-            user_profile = booking.user.userprofile
-            msg = f"Your appointment '{slot.appointmentName}' with {slot.providerFirstName} {slot.providerLastName} on {date_str} at {start_time_str}-{end_time_str} was canceled by {slot.providerFirstName}."
-            append_cancel_message(user_profile, msg)
+            userProfile = UserProfile.objects.filter(user=booking.user).first()
+            msg = f"Your appointment '{slot.appointmentName}' with {slot.providerFirstName} {slot.providerLastName} on {formattedDate} at {formattedStartTime}-{formattedEndTime} was canceled by {slot.providerFirstName}."
+            appendCancelMessage(userProfile, msg)
             booking.delete()
         slot.delete()
         messages.success(request, "Appointment slot canceled and removed.")
@@ -437,10 +431,10 @@ def cancelAppointment(request, slot_id):
 def downloadUserReport(request):
     if request.method == "POST":
         username = request.POST.get("username")
-        start_date = request.POST.get("start_date")
-        end_date = request.POST.get("end_date")
-        appointment_type = request.POST.get("appointment_type") or None
-        response = generateUserAppointmentsCsv(username, start_date, end_date, appointment_type)
+        startDate = request.POST.get("startDate")
+        endDate = request.POST.get("endDate")
+        appointmentType = request.POST.get("appointmentType") or None
+        response = generateUserAppointmentsCsv(username, startDate, endDate, appointmentType)
         if response:
             return response
         messages.error(request, "User not found or no data.")
@@ -451,10 +445,10 @@ def downloadUserReport(request):
 @csrf_protect
 def downloadAllUsersReport(request):
     if request.method == "POST":
-        start_date = request.POST.get("start_date")
-        end_date = request.POST.get("end_date")
-        appointment_type = request.POST.get("appointment_type") or None
-        response = generateAllUsersReport(start_date, end_date, appointment_type)
+        startDate = request.POST.get("startDate")
+        endDate = request.POST.get("endDate")
+        appointmentType = request.POST.get("appointmentType") or None
+        response = generateAllUsersReport(startDate, endDate, appointmentType)
         return response
     return redirect('adminDashboard')
 
@@ -463,9 +457,9 @@ def downloadAllUsersReport(request):
 def downloadProviderReport(request):
     if request.method == "POST":
         username = request.POST.get("username")
-        start_date = request.POST.get("start_date")
-        end_date = request.POST.get("end_date")
-        response = generateProviderAppointmentsCsv(username, start_date, end_date)
+        startDate = request.POST.get("startDate")
+        endDate = request.POST.get("endDate")
+        response = generateProviderAppointmentsCsv(username, startDate, endDate)
         if response:
             return response
         messages.error(request, "Provider not found or no data.")
@@ -476,9 +470,9 @@ def downloadProviderReport(request):
 @csrf_protect
 def downloadAllProvidersReport(request):
     if request.method == "POST":
-        start_date = request.POST.get("start_date")
-        end_date = request.POST.get("end_date")
-        appointment_type = request.POST.get("appointment_type") or None
-        response = generateAllProvidersReport(start_date, end_date, appointment_type)
+        startDate = request.POST.get("startDate")
+        endDate = request.POST.get("endDate")
+        appointmentType = request.POST.get("appointmentType") or None
+        response = generateAllProvidersReport(startDate, endDate, appointmentType)
         return response
     return redirect('adminDashboard')

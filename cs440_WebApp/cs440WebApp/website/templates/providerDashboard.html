@@ -8,14 +8,14 @@
 {% block content %}
 
 <div class="provider-header-name">
-    <h2>Hello {{ provider.first_name }}!</h2>
+    <h2>Hello {{ provider.firstName }}!</h2>
 </div>
 
-{% if canceled_msgs %}
+{% if canceledMsgs %}
 <div class="alert alert-warning" role="alert" style="margin-top: 20px;">
     <strong>Cancelation Notices:</strong>
     <ul style="margin-bottom: 0;">
-        {% for msg in canceled_msgs %}
+        {% for msg in canceledMsgs %}
             <li>{{ msg }}</li>
         {% endfor %}
     </ul>
@@ -53,21 +53,21 @@
             <tbody>
                 {% for slot in slots %}
                 <tr>
-                    <td>{{ slot.appointment_name }}</td>
+                    <td>{{ slot.appointmentName }}</td>
                     <td>{{ slot.date }}</td>
-                    <td>{{ slot.start_time }}</td>
-                    <td>{{ slot.end_time }}</td>
+                    <td>{{ slot.startTime }}</td>
+                    <td>{{ slot.endTime }}</td>
                     <td>
-                         {% if slot.user_name != "Unbooked" %}
+                         {% if slot.userName != "Unbooked" %}
                             <span style="color: #6f42c1; font-weight: bold;">
-                                {{ slot.user_name }}
+                                {{ slot.userName }}
                             </span>
                         {% else %}
                             <span style="color: #28a745; font-weight: bold;">Available</span>
                         {% endif %}
                     </td>
                     <td>
-                        <form method="POST" action="{% url 'cancelAppointment' slot.slot_id %}">
+                        <form method="POST" action="{% url 'cancelAppointment' slot.slotId %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                         </form>
@@ -90,19 +90,19 @@
         <h2>Add Appointments</h2>
     </div>
     
-    {% if slot_form.errors %}
+    {% if slotForm.errors %}
         <div class="alert alert-danger" role="alert">
             <strong>Please correct the following errors:</strong>
             <ul class="mb-0">
-                {% for field in slot_form %}
+                {% for field in slotForm %}
                     {% if field.errors %}
                         {% for error in field.errors %}
                             <li>{{ field.label }}: {{ error }}</li>
                         {% endfor %}
                     {% endif %}
                 {% endfor %}
-                {% if slot_form.non_field_errors %}
-                    {% for error in slot_form.non_field_errors %}
+                {% if slotForm.non_field_errors %}
+                    {% for error in slotForm.non_field_errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                 {% endif %}
@@ -113,27 +113,27 @@
     <form method="POST" class="row g-3 slot-form">
         {% csrf_token %}
         <div class="col-md-3">
-            {{ slot_form.appointmentName.label_tag }} {{ slot_form.appointmentName }}
-            {% if slot_form.appointmentName.errors %}
-                <div class="text-danger small">{{ slot_form.appointmentName.errors.0 }}</div>
+            {{ slotForm.appointmentName.label_tag }} {{ slotForm.appointmentName }}
+            {% if slotForm.appointmentName.errors %}
+                <div class="text-danger small">{{ slotForm.appointmentName.errors.0 }}</div>
             {% endif %}
         </div>
         <div class="col-md-3">
-            {{ slot_form.date.label_tag }} {{ slot_form.date }}
-            {% if slot_form.date.errors %}
-                <div class="text-danger small">{{ slot_form.date.errors.0 }}</div>
+            {{ slotForm.date.label_tag }} {{ slotForm.date }}
+            {% if slotForm.date.errors %}
+                <div class="text-danger small">{{ slotForm.date.errors.0 }}</div>
             {% endif %}
         </div>
         <div class="col-md-3">
-            {{ slot_form.start_time.label_tag }} {{ slot_form.start_time }}
-            {% if slot_form.start_time.errors %}
-                <div class="text-danger small">{{ slot_form.start_time.errors.0 }}</div>
+            {{ slotForm.startTime.label_tag }} {{ slotForm.startTime }}
+            {% if slotForm.startTime.errors %}
+                <div class="text-danger small">{{ slotForm.startTime.errors.0 }}</div>
             {% endif %}
         </div>
         <div class="col-md-3">
-            {{ slot_form.end_time.label_tag }} {{ slot_form.end_time }}
-            {% if slot_form.end_time.errors %}
-                <div class="text-danger small">{{ slot_form.end_time.errors.0 }}</div>
+            {{ slotForm.endTime.label_tag }} {{ slotForm.endTime }}
+            {% if slotForm.endTime.errors %}
+                <div class="text-danger small">{{ slotForm.endTime.errors.0 }}</div>
             {% endif %}
         </div>
         <div class="col-12">

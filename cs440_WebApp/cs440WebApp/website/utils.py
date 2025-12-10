@@ -10,14 +10,14 @@ def convertFromMilitaryTime(timeStamp):
 def filterNonPastAppointments(queryset):
     nonPastAppointments = []
     for item in queryset:
-        if not item.is_past():
+        if not item.isPast():
             nonPastAppointments.append(item)
     return nonPastAppointments
 
 def filterNonPastBookings(bookings):
     nonPastBookings = []
     for booking in bookings:
-        if not booking.slot.is_past():
+        if not booking.slot.isPast():
             nonPastBookings.append(booking)
     return nonPastBookings
 
@@ -32,12 +32,12 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
         formattedDate = slot.date.strftime('%m-%d-%Y')
         booking = getattr(slot, 'booking', None)
         user_name = booking.user.get_full_name() if booking else "Unbooked"
-        provider_name = f"{slot.providerFirstName} {slot.providerLastName}"
+        providerName = f"{slot.providerFirstName} {slot.providerLastName}"
         
         # Partial, case-insensitive search for appointment name, user, or provider
         if search:
             # Check if string entered is in appointment name, user name, or provider name
-            combined = f"{slot.appointmentName} {user_name} {provider_name}".lower()
+            combined = f"{slot.appointmentName} {user_name} {providerName}".lower()
             
             if search not in combined:
                 continue
@@ -48,46 +48,53 @@ def filterAppointments(appointmentSlots, search='', typeFilter='', dateFilter=''
         if dateFilter and slot.date.strftime('%Y-%m-%d') != dateFilter:
             continue
         
-        # Add relevant appointment details to the filtered list, including slot_id
+        # Add relevant appointment details to the filtered list, including slotId
         filtered.append({
-            'slot_id': slot.id,
-            'user_name': user_name,
-            'provider_name': provider_name,
-            'appointment_name': slot.appointmentName,
-            'appointment_type': slot.appointmentType,
+            'slotId': slot.id,
+            'userName': user_name,
+            'providerName': providerName,
+            'appointmentName': slot.appointmentName,
+            'appointmentType': slot.appointmentType,
             'date': formattedDate,
-            'time': f"{convertFromMilitaryTime(slot.start_time)} - {convertFromMilitaryTime(slot.end_time)}",
-            'start_time': slot.start_time,
-            'end_time': slot.end_time,
-            'is_past': slot.is_past(),
+            'time': f"{convertFromMilitaryTime(slot.startTime)} - {convertFromMilitaryTime(slot.endTime)}",
+            'startTime': slot.startTime,
+            'endTime': slot.endTime,
+            'isPast': slot.isPast(),
         })
         # Sort so non-past appointments come first
-    filtered.sort(key=lambda x: x['is_past'])
+    filtered.sort(key=lambda x: x['isPast'])
     # Return the filtered list of appointments
     return filtered
 
 
-def filterUsers(user_profiles, provider_profiles, search='', typeFilter=''):
-
+def filterUsers(userProfiles, providerProfiles, search='', typeFilter=''):
     search = search.strip().lower()
 
     # Filter by type
     if typeFilter == "User":
-        provider_profiles = []
+        providerProfiles = []
     elif typeFilter == "Provider":
-        user_profiles = []
+        userProfiles = []
 
     # Filter by search
     def matches(profile):
         username = profile.user.username.lower()
-        full_name = f"{profile.first_name} {profile.last_name}".lower()
-        return search in username or search in full_name
+        fullName = f"{getattr(profile, 'firstName', '')} {getattr(profile, 'lastName', '')}".strip().lower()
+        return search in username or search in fullName
 
-    if search:
-        user_profiles = [p for p in user_profiles if matches(p)]
-        provider_profiles = [p for p in provider_profiles if matches(p)]
+    # Generate filtered lists of users/providers matching the search criteria
+    filteredUserProfiles = []
+    for p in userProfiles:
+        if matches(p):
+            filteredUserProfiles.append(p)
 
-    return user_profiles, provider_profiles
+    filteredProviderProfiles = []
+    for p in providerProfiles:
+        if matches(p):
+            filteredProviderProfiles.append(p)
+
+    return filteredUserProfiles, filteredProviderProfiles
+
 
 def filterBookings(bookings, search='', typeFilter=''):
     search = search.strip().lower()
@@ -112,14 +119,14 @@ def deleteUserAndProfile(username):
         row = cursor.fetchone()
         if not row:
             return False  # User not found
-        user_id = row[0]
+        userId = row[0]
 
     # Delete related bookings first
-    Booking.objects.filter(user_id=user_id).delete()
+    Booking.objects.filter(user_id=userId).delete()
     # Delete from UserProfile if exists
-    UserProfile.objects.filter(user_id=user_id).delete()
+    UserProfile.objects.filter(user_id=userId).delete()
     # Delete from ServiceProvider if exists
-    ServiceProvider.objects.filter(user_id=user_id).delete()
+    ServiceProvider.objects.filter(user_id=userId).delete()
     # Delete from auth_user using raw SQL to avoid Django's cascades
     with connection.cursor() as cursor:
         cursor.execute("DELETE FROM auth_user WHERE username = %s", [username])
@@ -144,9 +151,9 @@ def generateUserAppointmentsCsv(username, startDate, endDate, appointmentType=No
     ])
     for booking in bookings.select_related('slot'):
         slot = booking.slot
-        if booking.booked_at:
-            bookedAtDate = booking.booked_at.strftime('%m-%d-%Y')
-            bookedAtTime = convertFromMilitaryTime(booking.booked_at)
+        if booking.bookedAt:
+            bookedAtDate = booking.bookedAt.strftime('%m-%d-%Y')
+            bookedAtTime = convertFromMilitaryTime(booking.bookedAt)
             formattedBookedAt = f"{bookedAtDate} {bookedAtTime}"
         else:
             formattedBookedAt = ''
@@ -155,8 +162,8 @@ def generateUserAppointmentsCsv(username, startDate, endDate, appointmentType=No
             slot.appointmentType,
             f"{slot.providerFirstName} {slot.providerLastName}",
             slot.date,
-            slot.start_time,
-            slot.end_time,
+            slot.startTime,
+            slot.endTime,
             formattedBookedAt
         ])
     return response
@@ -177,9 +184,9 @@ def generateAllUsersReport(startDate, endDate, appointmentType=None):
     for booking in bookings.select_related('slot', 'user'):
         slot = booking.slot
         user = booking.user
-        if booking.booked_at:
-            bookedAtDate = booking.booked_at.strftime('%m-%d-%Y')
-            bookedAtTime = convertFromMilitaryTime(booking.booked_at)
+        if booking.bookedAt:
+            bookedAtDate = booking.bookedAt.strftime('%m-%d-%Y')
+            bookedAtTime = convertFromMilitaryTime(booking.bookedAt)
             formattedBookedAt = f"{bookedAtDate} {bookedAtTime}"
         else:
             formattedBookedAt = ''
@@ -190,8 +197,8 @@ def generateAllUsersReport(startDate, endDate, appointmentType=None):
             slot.appointmentType,
             f"{slot.providerFirstName} {slot.providerLastName}",
             slot.date,
-            slot.start_time,
-            slot.end_time,
+            slot.startTime,
+            slot.endTime,
             formattedBookedAt
         ])
     return response
@@ -214,15 +221,15 @@ def generateProviderAppointmentsCsv(username, startDate, endDate):
     for slot in slots:
         booking = Booking.objects.filter(slot=slot).first()
         userBooked = booking.user.get_full_name() if booking else ''
-        bookedAt = (f"{booking.booked_at.strftime('%m-%d-%Y')} {convertFromMilitaryTime(booking.booked_at)}"
-                    if booking and booking.booked_at else '')
+        bookedAt = (f"{booking.bookedAt.strftime('%m-%d-%Y')} {convertFromMilitaryTime(booking.bookedAt)}"
+                    if booking and booking.bookedAt else '')
         bookedFlag = 'Yes' if booking else 'No'
         writer.writerow([
             slot.appointmentName,
             slot.date.strftime('%m-%d-%Y'),
             userBooked,
-            convertFromMilitaryTime(slot.start_time),
-            convertFromMilitaryTime(slot.end_time),
+            convertFromMilitaryTime(slot.startTime),
+            convertFromMilitaryTime(slot.endTime),
             bookedAt,
             bookedFlag
         ])
@@ -243,18 +250,18 @@ def generateAllProvidersReport(startDate, endDate, appointmentType=None):
     ])
     for slot in slots:
         booking = Booking.objects.filter(slot=slot).first()
-        booked_flag = 'Yes' if booking else 'No'
-        booked_by = booking.user.get_full_name() if booking else ''
+        bookedFlag = 'Yes' if booking else 'No'
+        bookedBy = booking.user.get_full_name() if booking else ''
         writer.writerow([
             slot.providerUsername,
             f"{slot.providerFirstName} {slot.providerLastName}",
             slot.appointmentName,
             slot.appointmentType,
             slot.date,
-            slot.start_time,
-            slot.end_time,
-            booked_flag,
-            booked_by
+            slot.startTime,
+            slot.endTime,
+            bookedFlag,
+            bookedBy
         ])
     return response
 

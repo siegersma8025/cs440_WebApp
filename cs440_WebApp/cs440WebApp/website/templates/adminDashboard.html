@@ -11,15 +11,14 @@
 
 <br>
 
-<!-- Toggle Buttons -->
 <div style="margin-bottom: 20px;">
     <a href="?view=appointments"
-       class="btn btn-outline-danger{% if view_mode == 'appointments' %} selected{% endif %}">Appointments</a>
+       class="btn btn-outline-danger{% if viewMode == 'appointments' %} selected{% endif %}">Appointments</a>
     <a href="?view=users"
-       class="btn btn-outline-danger{% if view_mode == 'users' %} selected{% endif %}">Users & Providers</a>
+       class="btn btn-outline-danger{% if viewMode == 'users' %} selected{% endif %}">Users & Providers</a>
 </div>
 
-{% if view_mode == 'appointments' %}
+{% if viewMode == 'appointments' %}
     <div class="search-filters">
         <form method="get" id="filterForm">
             <input type="hidden" name="view" value="appointments">
@@ -52,17 +51,17 @@
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td>{{ item.appointment_name }}</td>
-                    <td>{{ item.appointment_type }}</td>
-                    <td>{{ item.user_name }}</td>
-                    <td>{{ item.provider_name }}</td>
+                    <td>{{ item.appointmentName }}</td>
+                    <td>{{ item.appointmentType }}</td>
+                    <td>{{ item.userName }}</td>
+                    <td>{{ item.providerName }}</td>
                     <td>{{ item.date }}</td>
                     <td>{{ item.time }}</td>
                     <td>
-                        {% if not item.is_past %}
+                        {% if not item.isPast %}
                         <form method="POST" style="margin:0;">
                             {% csrf_token %}
-                            <input type="hidden" name="slot_id" value="{{ item.slot_id }}">
+                            <input type="hidden" name="slotId" value="{{ item.slotId }}">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                         </form>
                         {% else %}
@@ -79,7 +78,7 @@
         </table>
     </div>
     
-{% elif view_mode == 'users' %}
+{% elif viewMode == 'users' %}
     <div class="search-filters">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <form method="get" id="userFilterForm" style="display: flex; align-items: center;">
@@ -116,10 +115,10 @@
                 </tr>
             </thead>
             <tbody>
-                {% for profile in user_profiles %}
+                {% for profile in allUserProfiles %}
                 <tr>
                     <td>{{ profile.user.username }}</td>
-                    <td>{{ profile.first_name }} {{ profile.last_name }}</td>
+                    <td>{{ profile.firstName }} {{ profile.lastName }}</td>
                     <td>User</td>
                     <td>
                         <form method="POST" style="margin:0;">
@@ -130,7 +129,6 @@
                     </td>
                     <td>
                         <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#userReportModal-{{ profile.user.username }}">Download Report</button>
-                        <!-- User Report Modal -->
                         <div class="modal fade" id="userReportModal-{{ profile.user.username }}" tabindex="-1" aria-labelledby="userReportModalLabel-{{ profile.user.username }}" aria-hidden="true">
                           <div class="modal-dialog">
                             <form method="post" action="{% url 'downloadUserReport' %}">
@@ -142,10 +140,10 @@
                                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                  <label>Start Date: <input type="date" name="start_date" required></label><br>
-                                  <label>End Date: <input type="date" name="end_date" required></label><br>
+                                  <label>Start Date: <input type="date" name="startDate" required></label><br>
+                                  <label>End Date: <input type="date" name="endDate" required></label><br>
                                   <label>Appointment Type:
-                                    <select name="appointment_type">
+                                    <select name="appointmentType">
                                       <option value="">All Types</option>
                                       {% for t in types %}
                                       <option value="{{ t }}">{{ t }}</option>
@@ -154,7 +152,7 @@
                                   </label>
                                 </div>
                                 <div class="modal-footer">
-                                  <button type="submit" class="btn btn-info">Download CSV</button>
+                                  <button type="submit" class="btn btn-outline-danger">Download CSV</button>
                                 </div>
                               </div>
                             </form>
@@ -167,10 +165,10 @@
                     <td colspan="7" class="no-appointments">No users or providers found.</td>
                 </tr>
                 {% endfor %}
-                {% for profile in provider_profiles %}
+                {% for profile in allProviderProfiles %}
                 <tr>
                     <td>{{ profile.user.username }}</td>
-                    <td>{{ profile.first_name }} {{ profile.last_name }}</td>
+                    <td>{{ profile.firstName }} {{ profile.lastName }}</td>
                     <td>Provider</td>
                     <td>
                         <form method="POST" style="margin:0;">
@@ -180,28 +178,27 @@
                         </form>
                     </td>
                     <td>
-                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#userReportModal-{{ profile.user.username }}">Download Report</button>
-                        <!-- Provider Report Modal -->
-                        <div class="modal fade" id="userReportModal-{{ profile.user.username }}" tabindex="-1" aria-labelledby="userReportModalLabel-{{ profile.user.username }}" aria-hidden="true">
-                        <div class="modal-dialog">
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#providerReportModal-{{ profile.user.username }}">Download Report</button>
+                        <div class="modal fade" id="providerReportModal-{{ profile.user.username }}" tabindex="-1" aria-labelledby="providerReportModalLabel-{{ profile.user.username }}" aria-hidden="true">
+                          <div class="modal-dialog">
                             <form method="post" action="{% url 'downloadProviderReport' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="username" value="{{ profile.user.username }}">
-                            <div class="modal-content">
+                              {% csrf_token %}
+                              <input type="hidden" name="username" value="{{ profile.user.username }}">
+                              <div class="modal-content">
                                 <div class="modal-header">
-                                <h5 class="modal-title" id="userReportModalLabel-{{ profile.user.username }}">Download Report for {{ profile.user.username }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  <h5 class="modal-title" id="providerReportModalLabel-{{ profile.user.username }}">Download Report for {{ profile.user.username }}</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                <label>Start Date: <input type="date" name="start_date" required></label><br>
-                                <label>End Date: <input type="date" name="end_date" required></label><br>
+                                  <label>Start Date: <input type="date" name="startDate" required></label><br>
+                                  <label>End Date: <input type="date" name="endDate" required></label><br>
                                 </div>
                                 <div class="modal-footer">
-                                <button type="submit" class="btn btn-info">Download CSV</button>
+                                  <button type="submit" class="btn btn-outline-danger">Download CSV</button>
                                 </div>
-                            </div>
+                              </div>
                             </form>
-                        </div>
+                          </div>
                         </div>
                     </td>
                 </tr>
@@ -209,8 +206,7 @@
             </tbody>
         </table>
     </div>
-    
-    <!-- All Users Report Modal -->
+
     <div class="modal fade" id="allUsersReportModal" tabindex="-1" aria-labelledby="allUsersReportModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <form method="post" action="{% url 'downloadAllUsersReport' %}">
@@ -221,10 +217,10 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <label>Start Date: <input type="date" name="start_date" required></label><br>
-              <label>End Date: <input type="date" name="end_date" required></label><br>
+              <label>Start Date: <input type="date" name="startDate" required></label><br>
+              <label>End Date: <input type="date" name="endDate" required></label><br>
               <label>Appointment Type:
-                <select name="appointment_type">
+                <select name="appointmentType">
                   <option value="">All Types</option>
                   {% for t in types %}
                   <option value="{{ t }}">{{ t }}</option>
@@ -233,42 +229,41 @@
               </label>
             </div>
             <div class="modal-footer">
-              <button type="submit" class="btn btn-success">Download CSV</button>
+              <button type="submit" class="btn btn-outline-danger">Download CSV</button>
             </div>
           </div>
         </form>
       </div>
     </div>
 
-  <!-- All Providers Report Modal -->
-<div class="modal fade" id="allProvidersReportModal" tabindex="-1" aria-labelledby="allProvidersReportModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="post" action="{% url 'downloadAllProvidersReport' %}">
-      {% csrf_token %}
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="allProvidersReportModalLabel">Download All Providers Report</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <label>Start Date: <input type="date" name="start_date" required></label><br>
-          <label>End Date: <input type="date" name="end_date" required></label><br>
-          <label>Appointment Type:
-            <select name="appointment_type">
-              <option value="">All Types</option>
-              {% for t in types %}
-              <option value="{{ t }}">{{ t }}</option>
-              {% endfor %}
-            </select>
-          </label>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Download CSV</button>
-        </div>
+    <div class="modal fade" id="allProvidersReportModal" tabindex="-1" aria-labelledby="allProvidersReportModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="post" action="{% url 'downloadAllProvidersReport' %}">
+          {% csrf_token %}
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="allProvidersReportModalLabel">Download All Providers Report</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <label>Start Date: <input type="date" name="startDate" required></label><br>
+              <label>End Date: <input type="date" name="endDate" required></label><br>
+              <label>Appointment Type:
+                <select name="appointmentType">
+                  <option value="">All Types</option>
+                  {% for t in types %}
+                  <option value="{{ t }}">{{ t }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-outline-danger">Download CSV</button>
+            </div>
+          </div>
+        </form>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
 {% endif %}
 
 {% endblock %}

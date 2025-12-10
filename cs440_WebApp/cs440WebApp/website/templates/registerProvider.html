@@ -12,10 +12,10 @@
         <form method="post" class="slot-form">
             {% csrf_token %}
             <div class="mb-3">
-                {{ form.first_name.label_tag }}{{ form.first_name }}
+                {{ form.firstName.label_tag }}{{ form.firstName }}
             </div>
             <div class="mb-3">
-                {{ form.last_name.label_tag }}{{ form.last_name }}
+                {{ form.lastName.label_tag }}{{ form.lastName }}
             </div>
             <div class="mb-3">
                 {{ form.category.label_tag }}{{ form.category }}
